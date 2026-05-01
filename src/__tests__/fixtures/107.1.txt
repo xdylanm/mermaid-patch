@@ -1,0 +1,45 @@
+monotrail
+module Sequencer {
+    +voct pitch
+    +gate gate
+    +gate sync
+}
+module Oscillator {
+    +voct V/oct
+    +audio tri
+}
+module LFO {
+    +cv sine
+}
+module Envelope {
+    +gate trig
+    +cv decay
+}
+module Filter {
+    +audio In
+    +cv freq1
+    +cv freq2
+    +audio LP
+}
+module VCA {
+    +audio In
+    +cv CV
+    +audio Out
+}
+
+Sequencer sq1["Melody"]
+Envelope env1["Tri. decay"]
+Filter lpf1
+VCA vca1
+LFO lfo1
+Oscillator osc1
+
+-->|MIDI| sq1:sync
+sq1:pitch --> osc1:V/Oct
+sq1:gate --> env1:trig
+env1:decay --> lpf1:freq1
+env1:decay -->|env mod| vca1:CV
+osc1:tri --> lpf1:In
+lfo1:sine -->|LFO sweep| lpf1:freq2
+lpf1:LP --> vca1:In
+vca1:Out -->|Out|

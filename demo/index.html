@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monotrail – Mermaid Plugin Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1d23;
+      color: #abb2bf;
+      font-family: monospace;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      padding: 12px 20px;
+      background: #21252b;
+      border-bottom: 1px solid #3e4451;
+      font-size: 14px;
+      color: #61afef;
+      letter-spacing: 0.05em;
+    }
+
+    .workspace {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .editor-pane {
+      display: flex;
+      flex-direction: column;
+      width: 360px;
+      min-width: 220px;
+      border-right: 1px solid #3e4451;
+      background: #21252b;
+    }
+
+    .editor-pane label {
+      padding: 8px 12px 4px;
+      font-size: 11px;
+      color: #5c6370;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    textarea {
+      flex: 1;
+      background: #1e2127;
+      color: #abb2bf;
+      border: none;
+      outline: none;
+      resize: none;
+      padding: 10px 12px;
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .editor-actions {
+      padding: 10px 12px;
+      border-top: 1px solid #3e4451;
+    }
+
+    button {
+      width: 100%;
+      padding: 8px;
+      background: #61afef;
+      color: #1e2127;
+      border: none;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: #528bcc; }
+    button:disabled { background: #3e4451; color: #5c6370; cursor: default; }
+
+    .render-pane {
+      flex: 1;
+      overflow: auto;
+      padding: 20px;
+    }
+
+    #output {
+      display: inline-block;
+    }
+
+    #error {
+      display: none;
+      color: #e06c75;
+      font-size: 13px;
+      white-space: pre-wrap;
+      padding: 12px;
+      background: #2c1a1a;
+      border: 1px solid #e06c75;
+      border-radius: 4px;
+    }
+
+    #status {
+      padding: 4px 0 8px;
+      font-size: 11px;
+      color: #5c6370;
+    }
+  </style>
+</head>
+<body>
+  <header>monotrail – mermaid plugin demo</header>
+  <div class="workspace">
+    <div class="editor-pane">
+      <label>Diagram Source</label>
+      <textarea id="input" spellcheck="false">monotrail
+module Oscillator {
+    +voct V/oct
+    +audio tri
+    +audio saw
+}
+module Filter {
+    +audio In
+    +cv freq
+    +audio LP
+}
+module VCA {
+    +audio In
+    +cv CV
+    +audio Out
+}
+module Envelope {
+    +gate trig
+    +cv out
+}
+
+Oscillator osc1
+Filter lpf1
+VCA vca1
+Envelope env1
+
+-->|MIDI gate| env1:trig
+osc1:tri --> lpf1:In
+env1:out --> lpf1:freq
+lpf1:LP --> vca1:In
+env1:out --> vca1:CV
+vca1:Out -->|Out|</textarea>
+      <div class="editor-actions">
+        <div id="status">Loading plugin…</div>
+        <button id="renderBtn" disabled>Render</button>
+      </div>
+    </div>
+    <div class="render-pane">
+      <pre id="error"></pre>
+      <div id="output"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Load Mermaid from CDN (ESM build)
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+    // Load the locally built monotrail plugin.
+    // Path is relative to THIS file (demo/index.html), so go up one level to
+    // reach the dist/ folder at the repo root.
+    import monotrail from '../dist/mermaid-monotrail.core.mjs';
+
+    const statusEl = document.getElementById('status');
+    const renderBtn = document.getElementById('renderBtn');
+    const inputEl  = document.getElementById('input');
+    const outputEl = document.getElementById('output');
+    const errorEl  = document.getElementById('error');
+
+    // Register the external diagram type, then initialise Mermaid.
+    await mermaid.registerExternalDiagrams([monotrail]);
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      // Optional: per-plugin config (all keys are optional)
+      // monotrail: {
+      //   audioColor: '#ff6600',
+      //   cvColor: '#00aaff',
+      // },
+    });
+
+    statusEl.textContent = 'Ready';
+    renderBtn.disabled = false;
+
+    async function render() {
+      const text = inputEl.value.trim();
+      errorEl.style.display = 'none';
+      renderBtn.disabled = true;
+      statusEl.textContent = 'Rendering…';
+
+      try {
+        // mermaid.render(id, text) → { svg }
+        // Use a fixed ID so repeated renders replace the old SVG element.
+        const { svg } = await mermaid.render('monotrail-svg', text);
+        outputEl.innerHTML = svg;
+        statusEl.textContent = 'OK';
+      } catch (err) {
+        errorEl.textContent = String(err);
+        errorEl.style.display = 'block';
+        outputEl.innerHTML = '';
+        statusEl.textContent = 'Error';
+      } finally {
+        renderBtn.disabled = false;
+      }
+    }
+
+    renderBtn.addEventListener('click', render);
+    // Auto-render on load
+    render();
+  </script>
+</body>
+</html>

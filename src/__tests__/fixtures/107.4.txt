@@ -1,0 +1,87 @@
+monotrail
+module Sequencer {
+    +voct pitch
+    +gate gate
+}
+module Oscillator {
+    +voct V/oct
+    +cv FM1
+    +cv FM2
+    +audio Out
+}
+module LFO {
+    +cv sine
+}
+module Envelope {
+    +gate trig
+    +gate gate
+    +cv Out
+}
+module Filter {
+    +audio In
+    +cv freq1
+    +cv freq2
+    +audio LP
+}
+module VCA {
+    +audio In
+    +cv CV
+    +audio Out
+}
+
+module Noise {
+    +audio Out
+}
+
+module Random {
+    +cv Out
+}
+
+module Mixer {
+    +any In1
+    +any In2
+    +any In3
+    +any Out
+}
+
+Sequencer sq1["Melody"]
+Oscillator osc1["Main"]
+Oscillator osc2["Sub"]
+Oscillator osc3
+VCA vca1
+VCA vca2
+Random rand1["Smooth"]
+Random rand2["Smooth"]
+Envelope env1["ADSR"]
+Envelope env2["/^^\"]
+Noise n1
+Noise n2
+Mixer mix1
+Mixer mix2
+Filter lpf1
+LFO lfo1
+
+osc3:Out --> vca1:In
+env1:Out --> vca1:CV
+vca1:Out --> osc3:FM1
+rand1:Out --> osc3:FM2
+
+sq1:pitch --> osc1:V/Oct
+sq1:pitch --> osc2:V/Oct
+sq1:gate --> env1:gate
+
+n1:Out --> mix1:In1
+osc1:Out --> mix1:In2
+osc2:Out --> mix1:In3
+mix1:Out --> lpf1:In
+
+n2:Out --> mix2:In1
+lfo1:sine --> mix2:In2
+rand2:Out --> mix2:In3
+mix2:Out --> lpf1:freq2
+
+env2:Out --> lpf1:freq1
+env2:Out --> vca2:CV
+lpf1:LP --> vca2:In
+
+vca2:Out -->|Out|

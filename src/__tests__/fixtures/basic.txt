@@ -1,0 +1,17 @@
+monotrail
+module Oscillator {
+    +voct V/oct
+    +cv FM
+    +audio Out
+}
+
+module VCA {
+    +audio In
+    +cv CV
+    +audio Out
+}
+
+VCA vca1
+Oscillator osc1["Waveshape"]
+
+osc1:Out --> vca1:In

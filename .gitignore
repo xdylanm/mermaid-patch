@@ -1,0 +1,9 @@
+node_modules/
+dist/
+
+# Auto-generated from src/grammar/monotrail.ne
+src/grammar/monotrail.grammar.js
+
+# Misc
+.DS_Store
+*.log
