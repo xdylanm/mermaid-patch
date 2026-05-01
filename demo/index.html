@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Monotrail – Mermaid Plugin Demo</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "mermaid": "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs"
+      }
+    }
+  </script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -82,6 +89,31 @@
     button:hover { background: #528bcc; }
     button:disabled { background: #3e4451; color: #5c6370; cursor: default; }
 
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px 0;
+      font-size: 11px;
+      color: #5c6370;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      user-select: none;
+    }
+
+    .theme-toggle select {
+      background: #1e2127;
+      color: #abb2bf;
+      border: 1px solid #3e4451;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: monospace;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .theme-toggle select:focus { outline: none; border-color: #61afef; }
+
     .render-pane {
       flex: 1;
       overflow: auto;
@@ -148,6 +180,14 @@ lpf1:LP --> vca1:In
 env1:out --> vca1:CV
 vca1:Out -->|Out|</textarea>
       <div class="editor-actions">
+        <label class="theme-toggle">
+          Theme
+          <select id="themeSelect">
+            <option value="dark" selected>dark</option>
+            <option value="default">default</option>
+            <option value="neutral">neutral</option>
+          </select>
+        </label>
         <div id="status">Loading plugin…</div>
         <button id="renderBtn" disabled>Render</button>
       </div>
@@ -159,34 +199,43 @@ vca1:Out -->|Out|</textarea>
   </div>
 
   <script type="module">
-    // Load Mermaid from CDN (ESM build)
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    // Both mermaid and monotrail resolve via the import map to the same CDN
+    // instance, ensuring mermaid.mermaidAPI.getConfig() in the plugin
+    // reflects the config set by mermaid.initialize() here.
+    import mermaid from 'mermaid';
 
     // Load the locally built monotrail plugin.
     // Path is relative to THIS file (demo/index.html), so go up one level to
     // reach the dist/ folder at the repo root.
     import monotrail from '../dist/mermaid-monotrail.core.mjs';
 
-    const statusEl = document.getElementById('status');
-    const renderBtn = document.getElementById('renderBtn');
-    const inputEl  = document.getElementById('input');
-    const outputEl = document.getElementById('output');
-    const errorEl  = document.getElementById('error');
+    const statusEl    = document.getElementById('status');
+    const renderBtn   = document.getElementById('renderBtn');
+    const inputEl     = document.getElementById('input');
+    const outputEl    = document.getElementById('output');
+    const errorEl     = document.getElementById('error');
+    const themeSelect = document.getElementById('themeSelect');
 
     // Register the external diagram type, then initialise Mermaid.
     await mermaid.registerExternalDiagrams([monotrail]);
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      // Optional: per-plugin config (all keys are optional)
-      // monotrail: {
-      //   audioColor: '#ff6600',
-      //   cvColor: '#00aaff',
-      // },
-    });
+
+    function currentTheme() {
+      return themeSelect.value;
+    }
+
+    function initMermaid() {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: currentTheme(),
+      });
+    }
+
+    initMermaid();
 
     statusEl.textContent = 'Ready';
     renderBtn.disabled = false;
+
+    let renderSeq = 0;
 
     async function render() {
       const text = inputEl.value.trim();
@@ -195,9 +244,8 @@ vca1:Out -->|Out|</textarea>
       statusEl.textContent = 'Rendering…';
 
       try {
-        // mermaid.render(id, text) → { svg }
-        // Use a fixed ID so repeated renders replace the old SVG element.
-        const { svg } = await mermaid.render('monotrail-svg', text);
+        const id = 'monotrail-svg-' + (++renderSeq);
+        const { svg } = await mermaid.render(id, text);
         outputEl.innerHTML = svg;
         statusEl.textContent = 'OK';
       } catch (err) {
@@ -211,6 +259,7 @@ vca1:Out -->|Out|</textarea>
     }
 
     renderBtn.addEventListener('click', render);
+    themeSelect.addEventListener('change', () => { initMermaid(); render(); });
     // Auto-render on load
     render();
   </script>

@@ -1,46 +1,71 @@
 # Configuration
 
-Pass a `monotrail` key inside `mermaid.initialize()` to override any option.  
-All keys are optional — unset keys fall back to the defaults listed below.
+Pass a `monotrail` key inside `mermaid.initialize()` to override layout and typography options.
 
 ```js
 mermaid.initialize({
-  theme: 'default',
+  theme: 'dark',
   monotrail: {
-    audioColor: '#ff6688',
-    background: '#ffffff',
+    portPlacement: 'declaration',
+    fontSize: 16,
   },
 });
 ```
 
-## Signal type colours
+Signal colours and node chrome colours are **not** settable via `monotrail.*`. Use the standard Mermaid `theme` and `themeVariables` options instead (see below).
 
-Colours for port badges and wires, per signal type.
+## Themes
 
-| Option | Default (light) | Description |
-|--------|----------------|-------------|
-| `audioColor` | `#F07BAB` | Audio signals |
-| `cvColor` | `#51A4DB` | Control voltage |
-| `voctColor` | `#8BC640` | V/oct pitch |
-| `gateColor` | `#F9AF3C` | Gate / trigger |
-| `anyColor` | `#888888` | Untyped ports |
-| `defaultColor` | `#888888` | Fallback for unknown types |
+Setting Mermaid's `theme` option automatically applies a built-in Monotrail palette:
 
-## Node colours
+| Theme | Signal colours | Node body | Canvas background |
+|-------|---------------|-----------|-------------------|
+| `default` | Original hues | Dark fill, light text | `#f0ede8` |
+| `dark` | Same as default | Light-grey fill (`#e8e8e8`), dark text | `#1e1e2e` |
+| `neutral` | Grayscale | Medium-grey fill, dark text | `#f5f5f5` |
 
-| Option | Default (light) | Description |
-|--------|----------------|-------------|
-| `nodeHeaderFill` | `#ffffff` | Module name bar background |
-| `nodeHeaderText` | `#111111` | Module name bar text |
-| `nodeBodyFill` | `#404040` | Port area background |
-| `nodeBodyText` | `#bbbbbb` | Port label text |
-| `nodeBorderColor` | `#1a1a1a` | Node outline |
+## Mermaid theme variables
+
+The following standard Mermaid `themeVariables` are mapped to Monotrail colours. `background`, `fontFamily`, and `fontSize` apply for all themes. The node chrome variables (`primaryColor` etc.) are only applied when `theme` is `dark` or `neutral` — Mermaid auto-populates these even for the `default` theme, so applying them would override the intentional Monotrail default palette.
+
+| Theme variable | Affects | Notes |
+|---------------|---------|-------|
+| `background` | SVG canvas fill | Also settable via `monotrail.background` |
+| `fontFamily` | Font for all text | Also settable via `monotrail.fontFamily` |
+| `fontSize` | Base font size for node names | `px` suffix stripped; also via `monotrail.fontSize` |
+| `primaryColor` | Node name bar background | — |
+| `primaryTextColor` | Node name bar text | — |
+| `primaryBorderColor` | Node outline stroke | — |
+| `secondaryColor` | Port area background | — |
+| `secondaryTextColor` | Port label text | — |
+
+```js
+mermaid.initialize({
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#0d1117',
+    primaryTextColor: '#f0f0f0',
+    primaryBorderColor: '#30363d',
+    secondaryColor: '#161b22',
+    secondaryTextColor: '#c9d1d9',
+    fontFamily: 'JetBrains Mono, monospace',
+    fontSize: '14px',
+  },
+});
+```
 
 ## Diagram background
 
-| Option | Default (light) | Description |
-|--------|----------------|-------------|
-| `background` | `#f0ede8` | SVG background fill |
+| Option | Default | Description |
+|--------|---------|-------------|
+| `monotrail.background` | palette default | SVG background fill. Overrides `themeVariables.background`. |
+
+## Typography
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `monotrail.fontFamily` | `'Arial, sans-serif'` | Font family for all SVG text. Overrides `themeVariables.fontFamily`. |
+| `monotrail.fontSize` | `18` | Base font size for node names (px). Port badge labels use `fontSize − 3`, edge labels use `fontSize − 5` (minimum 10 for both). Overrides `themeVariables.fontSize`. |
 
 ## Layout options
 
@@ -50,43 +75,3 @@ These are advanced options; the defaults work well in most cases.
 |--------|---------|--------|-------------|
 | `portPlacement` | `elk-optimized` | `elk-optimized` \| `declaration` | How port sides are assigned. `elk-optimized` runs a geometry pass after the first layout to distribute ports across all four sides (left, right, top, bottom) based on the Y-positions of connected nodes. `declaration` assigns output ports to the right side and input ports to the left side in module-declaration order, with no geometry adjustment. |
 | `nodePlacementStrategy` | `brandes-koepf` | `brandes-koepf` \| `network-simplex` \| `simple` | ELK node placement algorithm. `brandes-koepf` produces the most compact layouts. |
-
-## Dark mode
-
-When `theme: 'dark'` is set in Mermaid, a built-in set of darker defaults is applied automatically — you don't need to do anything. You can also override the dark palette via the `dark` sub-object:
-
-```js
-mermaid.initialize({
-  theme: 'dark',
-  monotrail: {
-    dark: {
-      audioColor: '#ff88aa',
-      background: '#0d1117',
-    },
-  },
-});
-```
-
-The `dark` object accepts all colour options (`audioColor`, `cvColor`, etc. and all node colour keys) but not the layout options.
-
-## Full example — custom light theme
-
-```js
-mermaid.initialize({
-  startOnLoad: true,
-  monotrail: {
-    audioColor:      '#e05080',
-    cvColor:         '#3090d0',
-    voctColor:       '#60b030',
-    gateColor:       '#e0a020',
-    anyColor:        '#909090',
-    defaultColor:    '#909090',
-    nodeHeaderFill:  '#f8f8f8',
-    nodeHeaderText:  '#222222',
-    nodeBodyFill:    '#333333',
-    nodeBodyText:    '#dddddd',
-    nodeBorderColor: '#111111',
-    background:      '#fafaf8',
-  },
-});
-```

@@ -90,7 +90,7 @@ function trapPoints(bx: number, by: number, side: Side): string {
   }
 }
 
-function badgeLabel(text: unknown, bx: number, by: number, side: Side): Element {
+function badgeLabel(text: unknown, bx: number, by: number, side: Side, config: MonotrailConfig): Element {
   const d = BADGE_D;
   let tx: number, ty: number, rotate = '';
   switch (side) {
@@ -109,10 +109,11 @@ function badgeLabel(text: unknown, bx: number, by: number, side: Side): Element 
       tx = bx; ty = by + d / 2;
       break;
   }
+  const badgeFontSize = String(Math.max(10, config.fontSize - 3));
   return svgText(safeStr(text), {
     x: tx, y: ty,
     'text-anchor': 'middle', 'dominant-baseline': 'middle',
-    fill: '#fff', 'font-size': '15', 'font-family': 'Arial, sans-serif',
+    fill: '#fff', 'font-size': badgeFontSize, 'font-family': config.fontFamily,
     'font-weight': 'bold', transform: rotate,
   });
 }
@@ -144,7 +145,7 @@ function renderNodeBadges(nl: NodeLayout, config: MonotrailConfig): Element {
     const color = signalColor(port.type, config);
     const { bx, by, side } = nl.portAnchors[port.label];
     g.appendChild(svgEl('polygon', { points: trapPoints(bx, by, side), fill: color }));
-    g.appendChild(badgeLabel(port.label, bx, by, side));
+    g.appendChild(badgeLabel(port.label, bx, by, side, config));
   }
   return g;
 }
@@ -160,11 +161,12 @@ function renderNodeBox(nl: NodeLayout, config: MonotrailConfig): Element {
     'stroke-width': 1.5,
   }));
 
+  const nodeFontSize = String(config.fontSize);
   g.appendChild(svgText(sanitize(safeStr(moduleType).toUpperCase()), {
     x: x + BOX_W / 2, y: y + BOX_TOP_H / 2,
     'text-anchor': 'middle', 'dominant-baseline': 'middle',
     fill: config.nodeHeaderText,
-    'font-size': '18', 'font-family': 'Arial, sans-serif',
+    'font-size': nodeFontSize, 'font-family': config.fontFamily,
     'font-weight': 'bold', 'letter-spacing': '0.06em',
   }));
 
@@ -180,7 +182,7 @@ function renderNodeBox(nl: NodeLayout, config: MonotrailConfig): Element {
       x: x + BOX_W / 2, y: y + BOX_TOP_H + BOX_BOT_H / 2,
       'text-anchor': 'middle', 'dominant-baseline': 'middle',
       fill: config.nodeBodyText,
-      'font-size': '18', 'font-family': 'Arial, sans-serif',
+      'font-size': nodeFontSize, 'font-family': config.fontFamily,
     }));
   }
 
@@ -251,7 +253,7 @@ function renderDangling(
     x: end.x + dx * 4, y: end.y + dy * 4,
     'text-anchor': anchor,
     'dominant-baseline': isH ? 'middle' : (srcSide === 'top' ? 'auto' : 'hanging'),
-    fill: color, 'font-size': '15', 'font-family': 'Arial, sans-serif', 'font-weight': 'bold',
+    fill: color, 'font-size': String(Math.max(10, config.fontSize - 3)), 'font-family': config.fontFamily, 'font-weight': 'bold',
   }));
   return g;
 }
@@ -293,7 +295,7 @@ function renderDanglingTo(
     x: start.x + dx * 4, y: start.y + dy * 4,
     'text-anchor': anchor,
     'dominant-baseline': isH ? 'middle' : (destSide === 'top' ? 'auto' : 'hanging'),
-    fill: color, 'font-size': '15', 'font-family': 'Arial, sans-serif', 'font-weight': 'bold',
+    fill: color, 'font-size': String(Math.max(10, config.fontSize - 3)), 'font-family': config.fontFamily, 'font-weight': 'bold',
   }));
   return g;
 }
@@ -305,7 +307,8 @@ function renderElkEdge(
   srcSide: Side,
   destSide: Side,
   color: string,
-  label: string | null | undefined
+  label: string | null | undefined,
+  config: MonotrailConfig
 ): Element[] {
   const [sdx, sdy] = SIDE_DIR[srcSide] ?? [1, 0];
   const [ddx, ddy] = SIDE_DIR[destSide] ?? [-1, 0];
@@ -337,7 +340,7 @@ function renderElkEdge(
     els.push(svgText(sanitize(label), {
       x: mid.x, y: mid.y,
       'text-anchor': 'middle', 'dominant-baseline': 'middle',
-      fill: color, 'font-size': '13', 'font-family': 'Arial, sans-serif',
+      fill: color, 'font-size': String(Math.max(10, config.fontSize - 5)), 'font-family': config.fontFamily,
       'font-weight': 'bold',
     }));
   }
@@ -526,7 +529,7 @@ export const draw = async (
     const destSide = tp ? tn.portAnchors[tp.label]?.side ?? 'left' : 'left';
 
     for (const section of sections) {
-      const els = renderElkEdge(section, srcSide, destSide, color, conn.label ?? null);
+      const els = renderElkEdge(section, srcSide, destSide, color, conn.label ?? null, config);
       for (const el of els) edgesG.appendChild(el);
     }
   });

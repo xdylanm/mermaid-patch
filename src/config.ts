@@ -1,13 +1,18 @@
 /**
- * Monotrail diagram configuration.
+ * Fully-resolved Monotrail diagram configuration (internal type used by renderer and layout).
  *
- * All color values should be valid CSS color strings.
- * Pass overrides via:
+ * Users configure this diagram via `mermaid.initialize()` with a `monotrail` key and/or
+ * standard Mermaid `themeVariables`.  Only the following keys are accepted from the user:
  *
- *   mermaid.initialize({ monotrail: { audioColor: '#ff0000' } });
+ *   background, fontFamily, fontSize, portPlacement, nodePlacementStrategy
+ *
+ * Signal colours and node chrome colours are derived from the built-in theme palette
+ * (DEFAULT_CONFIG / DARK_CONFIG / NEUTRAL_CONFIG) and can be further adjusted via standard
+ * Mermaid themeVariables (primaryColor → nodeHeaderFill, etc.).  They are not settable
+ * through the `monotrail.*` user config.
  */
 export interface MonotrailConfig {
-  // Signal type colors (used for port badges and wires)
+  // ── Internal: signal type colors (palette-driven, not user-settable via monotrail.*) ─────
   audioColor: string;
   cvColor: string;
   voctColor: string;
@@ -15,26 +20,24 @@ export interface MonotrailConfig {
   anyColor: string;
   defaultColor: string;
 
-  // Node chrome
+  // ── Internal: node chrome (palette + themeVariables, not user-settable via monotrail.*) ──
   nodeHeaderFill: string;
   nodeHeaderText: string;
   nodeBodyFill: string;
   nodeBodyText: string;
   nodeBorderColor: string;
 
-  // Diagram background
+  // ── User-settable via monotrail.* or themeVariables ──────────────────────────────────────
   background: string;
+  fontFamily: string;
+  fontSize: number;
 
-  // Layout options (advanced)
+  // ── User-settable: layout options ─────────────────────────────────────────────────────────
   portPlacement: 'elk-optimized' | 'declaration';
   nodePlacementStrategy: 'brandes-koepf' | 'network-simplex' | 'simple';
-
-  // Dark mode overrides — applied automatically when theme === 'dark'
-  dark?: Partial<Omit<MonotrailConfig, 'dark' | 'portPlacement' | 'nodePlacementStrategy'>>;
 }
 
 export const DEFAULT_CONFIG: MonotrailConfig = {
-  // Light mode defaults (matching the original patchlog renderer)
   audioColor: '#F07BAB',
   cvColor: '#51A4DB',
   voctColor: '#8BC640',
@@ -50,25 +53,41 @@ export const DEFAULT_CONFIG: MonotrailConfig = {
 
   background: '#f0ede8',
 
+  fontFamily: 'Arial, sans-serif',
+  fontSize: 18,
+
   portPlacement: 'elk-optimized',
   nodePlacementStrategy: 'brandes-koepf',
+};
 
-  dark: {
-    audioColor: '#f4a7c3',
-    cvColor: '#7bc4f0',
-    voctColor: '#aad878',
-    gateColor: '#fcc76a',
-    anyColor: '#aaaaaa',
-    defaultColor: '#aaaaaa',
+/** Built-in dark palette. Signal colours are identical to DEFAULT_CONFIG. */
+export const DARK_CONFIG: MonotrailConfig = {
+  ...DEFAULT_CONFIG,
+  nodeHeaderFill: '#2a2a2a',
+  nodeHeaderText: '#eeeeee',
+  nodeBodyFill: '#e8e8e8',
+  nodeBodyText: '#111111',
+  nodeBorderColor: '#555555',
+  background: '#1e1e2e',
+};
 
-    nodeHeaderFill: '#2a2a2a',
-    nodeHeaderText: '#eeeeee',
-    nodeBodyFill: '#1a1a1a',
-    nodeBodyText: '#cccccc',
-    nodeBorderColor: '#555555',
+/** Built-in neutral palette — grayscale signal colours, light chrome. */
+export const NEUTRAL_CONFIG: MonotrailConfig = {
+  ...DEFAULT_CONFIG,
+  audioColor: '#a0a0a0',
+  cvColor: '#888888',
+  voctColor: '#b0b0b0',
+  gateColor: '#c8c8c8',
+  anyColor: '#888888',
+  defaultColor: '#888888',
 
-    background: '#1e1e2e',
-  },
+  nodeHeaderFill: '#f0f0f0',
+  nodeHeaderText: '#222222',
+  nodeBodyFill: '#d0d0d0',
+  nodeBodyText: '#333333',
+  nodeBorderColor: '#999999',
+
+  background: '#f5f5f5',
 };
 
 /** Signal type → color key in MonotrailConfig */
