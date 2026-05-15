@@ -15,14 +15,15 @@ import {
   portTipFn,
   badgeAnchorFn,
   mixedCornerRect,
+  tabBandPath,
   BOX_W,
   BOX_H,
   BAND_STEP_H,
   BAND_STEP_V,
   CORNER_R_OUTER,
   CORNER_R_INNER,
-  BADGE_D,
-  BADGE_SLOPE,
+  TAB_D,
+  TAB_L,
   SVG_PAD,
   STUB,
   DANGLING_LEN,
@@ -74,51 +75,99 @@ function portTip(nl: NodeLayout, portName?: string | null): { x: number; y: numb
   return portTipFn(nl, portName);
 }
 
-function trapPoints(bx: number, by: number, side: Side): string {
-  const d = BADGE_D;
-  const taper = d * Math.tan((90 - BADGE_SLOPE) * Math.PI / 180);
-  const wv = BOX_H * 0.4;
-  const wh = wv * 1.2;
-  const tv = wv - taper;
-  const th = wh - taper;
-  switch (side) {
-    case 'left':
-      return `${bx},${by - wv} ${bx},${by + wv} ${bx - d},${by + tv} ${bx - d},${by - tv}`;
-    case 'right':
-      return `${bx},${by - wv} ${bx},${by + wv} ${bx + d},${by + tv} ${bx + d},${by - tv}`;
-    case 'top':
-      return `${bx - wh},${by} ${bx + wh},${by} ${bx + th},${by - d} ${bx - th},${by - d}`;
-    case 'bottom':
-      return `${bx - wh},${by} ${bx + wh},${by} ${bx + th},${by + d} ${bx - th},${by + d}`;
+// ── Port tab rendering ────────────────────────────────────────────────────────
+
+/** Returns the four HSL fill colours for a port tab based on signal type. */
+function tabColors(type: string): { bg: string; light: string; mid: string; dark: string } {
+  const HUE: Record<string, number> = { audio: 25, cv: 200, voct: 100, gate: 300 };
+  const h = HUE[type];
+  if (h === undefined) {
+    return { bg: 'hsl(0,0%,80%)', light: 'hsl(0,0%,60%)', mid: 'hsl(0,0%,40%)', dark: 'hsl(0,0%,20%)' };
   }
+  return {
+    bg:    `hsl(${h},100%,80%)`,
+    light: `hsl(${h},100%,60%)`,
+    mid:   `hsl(${h},100%,40%)`,
+    dark:  `hsl(${h},100%,20%)`,
+  };
 }
 
-function badgeLabel(text: unknown, bx: number, by: number, side: Side, config: PatchConfig): Element {
-  const d = BADGE_D;
-  let tx: number, ty: number, rotate = '';
-  switch (side) {
-    case 'left':
-      tx = bx - d / 2; ty = by;
-      rotate = `rotate(-90 ${tx} ${ty})`;
-      break;
-    case 'right':
-      tx = bx + d / 2; ty = by;
-      rotate = `rotate(90 ${tx} ${ty})`;
-      break;
-    case 'top':
-      tx = bx; ty = by - d / 2;
-      break;
-    default: // bottom
-      tx = bx; ty = by + d / 2;
-      break;
+/**
+ * Renders a banded-frame port tab at port anchor (bx, by) on the given side.
+ *
+ * The tab is constructed in canonical space (open=bottom, thick=right) then
+ * rotated into position via a single SVG transform on the enclosing <g>.
+ * Transform: translate(bx, by) rotate(angle) translate(-tabLength/2, -TAB_D)
+ * This maps the midpoint of the canonical open edge (tabLength/2, TAB_D) to (bx, by).
+ *
+ * @param tabLength - along-edge length of the tab (defaults to TAB_L; may be
+ *   wider for a lone tab on a top or bottom edge)
+ */
+function renderPortTab(
+  bx: number, by: number, side: Side,
+  label: string, signalType: string, config: PatchConfig,
+  tabLength = TAB_L,
+): Element {
+  const N = 3;
+  const rStep = (CORNER_R_OUTER - CORNER_R_INNER) / N;
+  const colors = tabColors(signalType);
+  const bandFills = [colors.dark, colors.mid, colors.light];
+
+  const g = svgEl('g', {});
+
+  // Background: solid shape filling the region inside all three bands.
+  // Bounded by the inner boundary of band N (outerV=N·BSV, outerH=N·BSH).
+  const bgOV = N * BAND_STEP_V;
+  const bgOH = N * BAND_STEP_H;
+  const bgRTL = CORNER_R_OUTER - bgOV;
+  const bgRTR = CORNER_R_INNER;
+  const bgPath = [
+    `M ${bgOV},${TAB_D}`,
+    `V ${bgOV + bgRTL}`,
+    `Q ${bgOV},${bgOV} ${bgOV + bgRTL},${bgOV}`,
+    `H ${tabLength - bgOH - bgRTR}`,
+    `Q ${tabLength - bgOH},${bgOV} ${tabLength - bgOH},${bgOV + bgRTR}`,
+    `V ${TAB_D}`,
+    `Z`,
+  ].join(' ');
+  g.appendChild(svgEl('path', { d: bgPath, fill: colors.bg }));
+
+  // Three band layers, outermost (dark) first
+  for (let i = 0; i < N; i++) {
+    const outerH  = i * BAND_STEP_H;
+    const innerH  = (i + 1) * BAND_STEP_H;
+    const outerV  = i * BAND_STEP_V;
+    const innerV  = (i + 1) * BAND_STEP_V;
+    const rTR_out = CORNER_R_OUTER - i * rStep;
+    const rTR_in  = CORNER_R_OUTER - (i + 1) * rStep;
+    const rTL_out = CORNER_R_OUTER - outerV;
+    const rTL_in  = CORNER_R_OUTER - innerV;
+    g.appendChild(svgEl('path', {
+      d: tabBandPath(tabLength, TAB_D, outerH, innerH, outerV, innerV,
+                     rTR_out, rTR_in, rTL_out, rTL_in),
+      fill: bandFills[i],
+    }));
   }
-  const badgeFontSize = String(Math.max(10, config.fontSize - 3));
-  return svgText(safeStr(text), {
-    x: tx, y: ty,
+
+  // Label centred in canonical tab space
+  const fontSize = String(Math.max(8, config.fontSize - 2));
+  g.appendChild(svgText(sanitize(label), {
+    x: tabLength / 2, y: TAB_D * 0.6,
     'text-anchor': 'middle', 'dominant-baseline': 'middle',
-    fill: '#fff', 'font-size': badgeFontSize, 'font-family': config.fontFamily,
-    'font-weight': 'bold', transform: rotate,
-  });
+    fill: colors.dark, 'font-size': fontSize, 'font-family': config.fontFamily,
+    'font-weight': 'bold',
+  }));
+
+  // Rotation per side.  Maps canonical open-edge midpoint (tabLength/2, TAB_D) → (bx, by).
+  const rotationAngles: Record<Side, number> = { top: 0, bottom: 180, left: -90, right: 90 };
+  const angle = rotationAngles[side];
+  const tx = -tabLength / 2;
+  const ty = -TAB_D;
+  const transform = angle === 0
+    ? `translate(${bx + tx},${by + ty})`
+    : `translate(${bx},${by}) rotate(${angle}) translate(${tx},${ty})`;
+  g.setAttribute('transform', transform);
+  return g;
 }
 
 // ── Arrow markers ─────────────────────────────────────────────────────────────
@@ -144,11 +193,17 @@ function addArrowMarkers(svgElement: Element, colors: string[]): void {
 
 function renderNodeBadges(nl: NodeLayout, config: PatchConfig): Element {
   const g = svgEl('g', {});
+
+  // Count ports per side to determine if a top/bottom tab should be widened.
+  const sideCounts: Record<Side, number> = { top: 0, bottom: 0, left: 0, right: 0 };
+  for (const port of nl.allPorts) sideCounts[nl.portAnchors[port.label].side]++;
+
   for (const port of nl.allPorts) {
-    const color = signalColor(port.type, config);
     const { bx, by, side } = nl.portAnchors[port.label];
-    g.appendChild(svgEl('polygon', { points: trapPoints(bx, by, side), fill: color }));
-    g.appendChild(badgeLabel(port.label, bx, by, side, config));
+    const tabLength = (side === 'top' || side === 'bottom') && sideCounts[side] === 1
+      ? Math.round(TAB_L * 1.4)
+      : TAB_L;
+    g.appendChild(renderPortTab(bx, by, side, port.label, port.type, config, tabLength));
   }
   return g;
 }
@@ -243,7 +298,7 @@ function renderDangling(
   } else {
     const rp = fromNode.allPorts.find((p) => p.side === 'right');
     if (rp) { src = portTip(fromNode, rp.label); srcSide = 'right'; }
-    else { src = { x: fromNode.x + BOX_W + BADGE_D, y: fromNode.y + BOX_H / 2 }; srcSide = 'right'; }
+    else { src = { x: fromNode.x + BOX_W + TAB_D, y: fromNode.y + BOX_H / 2 }; srcSide = 'right'; }
   }
 
   const fromPortInfo = conn.fromPort
@@ -287,7 +342,7 @@ function renderDanglingTo(
   } else {
     const lp = toNode.allPorts.find((p) => p.side === 'left');
     if (lp) { dst = portTip(toNode, lp.label); destSide = 'left'; }
-    else { dst = { x: toNode.x - BADGE_D, y: toNode.y + BOX_H / 2 }; destSide = 'left'; }
+    else { dst = { x: toNode.x - TAB_D, y: toNode.y + BOX_H / 2 }; destSide = 'left'; }
   }
 
   const toPortInfo = conn.toPort ? toNode.allPorts.find((p) => p.label === conn.toPort) : null;
@@ -447,10 +502,10 @@ export const draw = async (
   // SVG sizing
   const allNl = Object.values(layout);
   const svgWidth = allNl.length
-    ? Math.max(...allNl.map((nl) => nl.x)) + BOX_W + SVG_PAD + BADGE_D
+    ? Math.max(...allNl.map((nl) => nl.x)) + BOX_W + SVG_PAD + TAB_D
     : 400;
   const svgHeight = allNl.length
-    ? Math.max(...allNl.map((nl) => nl.y)) + BOX_H + SVG_PAD + BADGE_D
+    ? Math.max(...allNl.map((nl) => nl.y)) + BOX_H + SVG_PAD + TAB_D
     : 200;
 
   const WARNING_LINE_H = 18;
@@ -472,7 +527,7 @@ export const draw = async (
         srcSide = fn.portAnchors[conn.fromPort].side;
       } else {
         const rp = fn.allPorts.find((p) => p.side === 'right');
-        src = rp ? portTip(fn, rp.label) : { x: fn.x + BOX_W + BADGE_D, y: fn.y + BOX_H / 2 };
+        src = rp ? portTip(fn, rp.label) : { x: fn.x + BOX_W + TAB_D, y: fn.y + BOX_H / 2 };
         srcSide = rp ? rp.side : 'right';
       }
       const [dx, dy] = SIDE_DIR[srcSide];
@@ -489,7 +544,7 @@ export const draw = async (
         destSide = tn.portAnchors[conn.toPort].side;
       } else {
         const lp = tn.allPorts.find((p) => p.side === 'left');
-        dst = lp ? portTip(tn, lp.label) : { x: tn.x - BADGE_D, y: tn.y + BOX_H / 2 };
+        dst = lp ? portTip(tn, lp.label) : { x: tn.x - TAB_D, y: tn.y + BOX_H / 2 };
         destSide = lp ? lp.side : 'left';
       }
       const [dx, dy] = SIDE_DIR[destSide];

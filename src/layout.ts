@@ -23,16 +23,16 @@ import { parsePatch } from './parser.js';
 // ── Layout constants ──────────────────────────────────────────────────────────
 export const BOX_W = 144;
 export const BOX_H = 81;
-// Band thickness per step: ~5% of width horizontally, ~2% of height vertically (min 1 px).
+// Band thickness per step: 6 px horizontally (wide/thick edge), ~2% of height vertically (min 1 px).
 // Adjust these two values to tune the visual weight of the banded frame.
-export const BAND_STEP_H = Math.round(BOX_W * 0.05); // ≈ 7 px per band (horizontal)
+export const BAND_STEP_H = 5; // px per band (horizontal / thick edge)
 export const BAND_STEP_V = Math.max(1, Math.round(BOX_H * 0.02)); // ≈ 2 px per band (vertical)
 // Corner radius at the outermost band (dark) and innermost layer (background).
 // Intermediate layers interpolate linearly between these two values.
-export const CORNER_R_OUTER = 16; // outermost band corner radius (px)
+export const CORNER_R_OUTER = 12; // outermost band corner radius (px)
 export const CORNER_R_INNER = 4;  // background layer corner radius (px)
-export const BADGE_D = 24;
-export const BADGE_SLOPE = 75;
+export const TAB_D = 24; // depth of port tab (perpendicular to node edge), px
+export const TAB_L = BOX_H - 2 * CORNER_R_OUTER; // length of port tab along node edge = 57 px
 export const LAYER_GAP = 25;
 export const NODE_GAP = 16;
 export const SVG_PAD = 80;
@@ -74,6 +74,61 @@ export function mixedCornerRect(x: number, y: number, w: number, h: number, r: n
     ` Q ${x},${y + h} ${x},${y + h - rc}` +              // bottom-left arc ↑
     ` Z`                                                   // ↑ left edge → top-left
   );
+}
+
+/**
+ * Returns SVG path data for one band layer of a port tab in canonical orientation:
+ *   Width = tl (horizontal), Height = td (vertical)
+ *   Open/attachment side = bottom (y = td)
+ *   Outer/thick edge     = right  (BAND_STEP_H per band)
+ *   Thin edges           = left and top (BAND_STEP_V per band)
+ *
+ * The path traces the outer boundary clockwise, then the inner boundary
+ * counter-clockwise (same approach as mixedCornerRect nested layers).
+ *
+ * Arc radii:
+ *   Top-right corner (thin-top → thick-right): rTR_outer / rTR_inner
+ *     Follow the same radius progression as the node-box band layers:
+ *     rTR = CORNER_R_OUTER - i * rStep, rTR_inner = CORNER_R_OUTER - (i+1)*rStep
+ *   Top-left corner (thin-left ↔ thin-top): rTL_outer / rTL_inner
+ *     rTL = CORNER_R_OUTER - outerV  (so arc centre at (outerV, outerV) has
+ *     effective radius CORNER_R_OUTER, keeping band width constant around corner)
+ *
+ * @param tl        - tab length (canonical width, = TAB_L)
+ * @param td        - tab depth  (canonical height, = TAB_D)
+ * @param outerH    - right inset of outer boundary (= i * BAND_STEP_H)
+ * @param innerH    - right inset of inner boundary (= (i+1) * BAND_STEP_H)
+ * @param outerV    - left/top inset of outer boundary (= i * BAND_STEP_V)
+ * @param innerV    - left/top inset of inner boundary (= (i+1) * BAND_STEP_V)
+ * @param rTR_outer - top-right arc radius for outer boundary
+ * @param rTR_inner - top-right arc radius for inner boundary
+ * @param rTL_outer - top-left  arc radius for outer boundary (= CORNER_R_OUTER - outerV)
+ * @param rTL_inner - top-left  arc radius for inner boundary (= CORNER_R_OUTER - innerV)
+ */
+export function tabBandPath(
+  tl: number, td: number,
+  outerH: number, innerH: number,
+  outerV: number, innerV: number,
+  rTR_outer: number, rTR_inner: number,
+  rTL_outer: number, rTL_inner: number,
+): string {
+  return [
+    // ── Outer boundary (clockwise) ────────────────────────────────────────
+    `M ${outerV},${td}`,                                                        // 1. bottom-left sharp corner
+    `V ${outerV + rTL_outer}`,                                                  // 2. up left thin edge
+    `Q ${outerV},${outerV} ${outerV + rTL_outer},${outerV}`,                   // 3. top-left arc (thin-left → thin-top)
+    `H ${tl - outerH - rTR_outer}`,                                             // 4. right along top thin edge
+    `Q ${tl - outerH},${outerV} ${tl - outerH},${outerV + rTR_outer}`,         // 5. top-right arc (thin-top → thick-right)
+    `V ${td}`,                                                                   // 6. down right thick edge (sharp bottom-right)
+    // ── Inner boundary (counter-clockwise) ───────────────────────────────
+    `H ${tl - innerH}`,                                                          // 7. left along open bottom edge (inner)
+    `V ${innerV + rTR_inner}`,                                                   // 8. up right thick edge (inner)
+    `Q ${tl - innerH},${innerV} ${tl - innerH - rTR_inner},${innerV}`,          // 9. top-right arc inner
+    `H ${innerV + rTL_inner}`,                                                   // 10. left along top thin edge (inner)
+    `Q ${innerV},${innerV} ${innerV},${innerV + rTL_inner}`,                    // 11. top-left arc inner
+    `V ${td}`,                                                                   // 12. down left thin edge (inner, sharp bottom-left)
+    `Z`,                                                                         // 13. close
+  ].join(' ');
 }
 
 // ── Geometry helpers ──────────────────────────────────────────────────────────
@@ -259,10 +314,10 @@ export function badgeAnchorFn(nl: NodeLayout, portName?: string | null): { bx: n
 export function portTipFn(nl: NodeLayout, portName?: string | null): { x: number; y: number } {
   const { bx, by, side } = badgeAnchorFn(nl, portName);
   switch (side) {
-    case 'left':   return { x: bx - BADGE_D, y: by };
-    case 'right':  return { x: bx + BADGE_D, y: by };
-    case 'top':    return { x: bx, y: by - BADGE_D };
-    case 'bottom': return { x: bx, y: by + BADGE_D };
+    case 'left':   return { x: bx - TAB_D, y: by };
+    case 'right':  return { x: bx + TAB_D, y: by };
+    case 'top':    return { x: bx, y: by - TAB_D };
+    case 'bottom': return { x: bx, y: by + TAB_D };
   }
 }
 
@@ -390,7 +445,7 @@ export async function buildLayout(
 
   // ── Build ELK graph ───────────────────────────────────────────────────────
   function buildGraph({ interactive = false, xOverrides = {} as Record<string, number> } = {}) {
-    const BS = BADGE_D + STUB;
+    const BS = TAB_D + STUB;
     const elkW = BOX_W + 2 * BS;
     const elkH = BOX_H + 2 * BS;
     const SIDE_TO_POS: Record<Side, { x: number; y: number }> = {
@@ -531,7 +586,7 @@ export async function buildLayout(
   let facesChanged = false;
 
   if (portPlacement === 'elk-optimized') {
-    const BS2 = BADGE_D + STUB;
+    const BS2 = TAB_D + STUB;
     const nodeY: Record<string, number> = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const elkNode of (result1.children || []) as any[]) {
@@ -712,7 +767,7 @@ export async function buildLayout(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   for (const elkNode of (result.children || []) as any[]) {
     const name = elkNode.id;
-    const BS = BADGE_D + STUB;
+    const BS = TAB_D + STUB;
     const x = elkNode.x + BS;
     const y = elkNode.y + BS;
     const astNode = ast.nodes.find((n) => n.name === name);
@@ -831,7 +886,7 @@ export async function inspectLayout(
           srcSide = fn.portAnchors[conn.fromPort].side;
         } else {
           const rp = fn.allPorts.find((p) => p.side === 'right');
-          src = rp ? portTipFn(fn, rp.label) : { x: fn.x + BOX_W + BADGE_D, y: fn.y + BOX_H / 2 };
+          src = rp ? portTipFn(fn, rp.label) : { x: fn.x + BOX_W + TAB_D, y: fn.y + BOX_H / 2 };
           srcSide = 'right';
         }
         const [dx, dy] = SIDE_DIR[srcSide];
@@ -850,7 +905,7 @@ export async function inspectLayout(
           destSide = tn.portAnchors[conn.toPort].side;
         } else {
           const lp = tn.allPorts.find((p) => p.side === 'left');
-          dst = lp ? portTipFn(tn, lp.label) : { x: tn.x - BADGE_D, y: tn.y + BOX_H / 2 };
+          dst = lp ? portTipFn(tn, lp.label) : { x: tn.x - TAB_D, y: tn.y + BOX_H / 2 };
           destSide = 'left';
         }
         const [dx, dy] = SIDE_DIR[destSide];
