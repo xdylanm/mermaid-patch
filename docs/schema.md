@@ -18,10 +18,10 @@ module <Name> {
 
 | Type | Colour (default) | Meaning |
 |------|-----------------|---------|
-| `audio` | pink | Audio signal |
+| `audio` | orange | Audio signal |
 | `cv` | blue | Control voltage |
 | `voct` | green | V/oct pitch |
-| `gate` | amber | Gate / trigger |
+| `gate` | purple | Gate / trigger |
 | `any` | grey | Untyped / wildcard |
 
 ```

@@ -20,9 +20,9 @@ Setting Mermaid's `theme` option automatically applies a built-in patch diagram 
 
 | Theme | Signal colours | Node body | Canvas background |
 |-------|---------------|-----------|-------------------|
-| `default` | Original hues | Dark fill, light text | `#f0ede8` |
-| `dark` | Same as default | Light-grey fill (`#e8e8e8`), dark text | `#1e1e2e` |
-| `neutral` | Grayscale | Medium-grey fill, dark text | `#f5f5f5` |
+| `default` | Original hues | Light-grey banded frame (`#cccccc` bg, greyscale bands) | `hsl(50, 100%, 95%)` |
+| `dark` | Same as default | Dark banded frame (`#2a2a2a` bg, ascending-luminance bands), light text | `#1e1e2e` |
+| `neutral` | Grayscale | Near-white banded frame, single dark outer band | `#ffffff` |
 
 ## Mermaid theme variables
 
@@ -33,21 +33,19 @@ The following standard Mermaid `themeVariables` are mapped to patch diagram colo
 | `background` | SVG canvas fill | Also settable via `patch.background` |
 | `fontFamily` | Font for all text | Also settable via `patch.fontFamily` |
 | `fontSize` | Base font size for node names | `px` suffix stripped; also via `patch.fontSize` |
-| `primaryColor` | Node name bar background | — |
-| `primaryTextColor` | Node name bar text | — |
-| `primaryBorderColor` | Node outline stroke | — |
-| `secondaryColor` | Port area background | — |
-| `secondaryTextColor` | Port label text | — |
+| `primaryColor` | Node background fill (`nodeBgColor`) | — |
+| `primaryTextColor` | Node name text (`nodeNameColor`) | — |
+| `primaryBorderColor` | Outermost band colour (`nodeBandDark`) | — |
+| `secondaryTextColor` | Node label text (`nodeLabelColor`) | — |
 
 ```js
 mermaid.initialize({
   theme: 'dark',
   themeVariables: {
-    primaryColor: '#0d1117',
-    primaryTextColor: '#f0f0f0',
-    primaryBorderColor: '#30363d',
-    secondaryColor: '#161b22',
-    secondaryTextColor: '#c9d1d9',
+    primaryColor: '#0d1117',       // node background fill
+    primaryTextColor: '#f0f0f0',   // node name text
+    primaryBorderColor: '#30363d', // outermost band colour
+    secondaryTextColor: '#c9d1d9', // node label text
     fontFamily: 'JetBrains Mono, monospace',
     fontSize: '14px',
   },
