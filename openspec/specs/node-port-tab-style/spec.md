@@ -100,6 +100,7 @@ The tab label (port name) SHALL be rendered in the dark outer band colour (`hsl(
 - `font-family: config.fontFamily` (sans-serif)
 - `font-size: config.fontSize − 2`
 - `font-weight: bold`
+- **Always rendered upright** regardless of the tab group's rotation. For a `bottom`-edge tab (group rotation 180°) the `<text>` element SHALL carry a `transform="rotate(180, tabLength/2, TAB_D * 0.6)"` counter-rotation so that the glyphs appear in the same reading direction as tabs on other edges.
 
 #### Scenario: Audio tab label uses dark orange text
 
@@ -111,6 +112,18 @@ The tab label (port name) SHALL be rendered in the dark outer band colour (`hsl(
 
 - **WHEN** the default `fontSize` is 18
 - **THEN** the tab label font size SHALL be 16 (= 18 − 2)
+
+#### Scenario: Bottom tab label renders upright
+
+- **WHEN** a port on the `bottom` edge of a node is rendered
+- **THEN** the tab group SHALL have rotation 180° applied via its `transform` attribute
+- **THEN** the `<text>` element inside that group SHALL have `transform="rotate(180, <cx>, <cy>)"` where `<cx> = tabLength/2` and `<cy> = TAB_D * 0.6`
+- **THEN** the rendered label glyphs SHALL appear upright (not upside-down) to the viewer
+
+#### Scenario: Top/left/right tab labels have no counter-rotation
+
+- **WHEN** a port on the `top`, `left`, or `right` edge of a node is rendered
+- **THEN** the `<text>` element inside the tab group SHALL NOT have any additional rotation transform
 
 ---
 

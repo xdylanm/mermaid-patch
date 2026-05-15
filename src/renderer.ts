@@ -153,12 +153,19 @@ function renderPortTab(
 
   // Label centred in canonical tab space
   const fontSize = String(Math.max(8, config.fontSize - 2));
-  g.appendChild(svgText(sanitize(label), {
-    x: tabLength / 2, y: TAB_D * 0.6,
+  const cx = tabLength / 2;
+  const cy = TAB_D * 0.6;
+  const labelEl = svgText(sanitize(label), {
+    x: cx, y: cy,
     'text-anchor': 'middle', 'dominant-baseline': 'middle',
     fill: colors.dark, 'font-size': fontSize, 'font-family': config.fontFamily,
     'font-weight': 'bold',
-  }));
+  });
+  // Counter-rotate text for bottom tabs so glyphs render upright despite the 180° group rotation.
+  if (side === 'bottom') {
+    labelEl.setAttribute('transform', `rotate(180,${cx},${cy})`);
+  }
+  g.appendChild(labelEl);
 
   // Rotation per side.  Maps canonical open-edge midpoint (tabLength/2, TAB_D) → (bx, by).
   const rotationAngles: Record<Side, number> = { top: 0, bottom: 180, left: -90, right: 90 };
