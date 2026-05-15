@@ -1,6 +1,6 @@
-# Monotrail diagram schema
+# Patch diagram schema
 
-Every Monotrail diagram begins with the keyword `monotrail` on the first line.  
+Every patch diagram begins with the keyword `patch` on the first line.  
 The remaining statements can appear in any order (modules first is conventional).
 
 ## Modules
@@ -104,7 +104,7 @@ vca1:Out --> |Main out|
 ## Full example
 
 ```
-monotrail
+patch
 module Sequencer {
     +gate sync
     +voct pitch

@@ -1,7 +1,7 @@
 /**
- * Fully-resolved Monotrail diagram configuration (internal type used by renderer and layout).
+ * Fully-resolved patch diagram configuration (internal type used by renderer and layout).
  *
- * Users configure this diagram via `mermaid.initialize()` with a `monotrail` key and/or
+ * Users configure this diagram via `mermaid.initialize()` with a `patch` key and/or
  * standard Mermaid `themeVariables`.  Only the following keys are accepted from the user:
  *
  *   background, fontFamily, fontSize, portPlacement, nodePlacementStrategy
@@ -9,10 +9,10 @@
  * Signal colours and node chrome colours are derived from the built-in theme palette
  * (DEFAULT_CONFIG / DARK_CONFIG / NEUTRAL_CONFIG) and can be further adjusted via standard
  * Mermaid themeVariables (primaryColor → nodeHeaderFill, etc.).  They are not settable
- * through the `monotrail.*` user config.
+ * through the `patch.*` user config.
  */
-export interface MonotrailConfig {
-  // ── Internal: signal type colors (palette-driven, not user-settable via monotrail.*) ─────
+export interface PatchConfig {
+  // ── Internal: signal type colors (palette-driven, not user-settable via patch.*) ─────
   audioColor: string;
   cvColor: string;
   voctColor: string;
@@ -20,14 +20,14 @@ export interface MonotrailConfig {
   anyColor: string;
   defaultColor: string;
 
-  // ── Internal: node chrome (palette + themeVariables, not user-settable via monotrail.*) ──
+  // ── Internal: node chrome (palette + themeVariables, not user-settable via patch.*) ──
   nodeHeaderFill: string;
   nodeHeaderText: string;
   nodeBodyFill: string;
   nodeBodyText: string;
   nodeBorderColor: string;
 
-  // ── User-settable via monotrail.* or themeVariables ──────────────────────────────────────
+  // ── User-settable via patch.* or themeVariables ──────────────────────────────────────
   background: string;
   fontFamily: string;
   fontSize: number;
@@ -37,7 +37,7 @@ export interface MonotrailConfig {
   nodePlacementStrategy: 'brandes-koepf' | 'network-simplex' | 'simple';
 }
 
-export const DEFAULT_CONFIG: MonotrailConfig = {
+export const DEFAULT_CONFIG: PatchConfig = {
   audioColor: '#F07BAB',
   cvColor: '#51A4DB',
   voctColor: '#8BC640',
@@ -61,7 +61,7 @@ export const DEFAULT_CONFIG: MonotrailConfig = {
 };
 
 /** Built-in dark palette. Signal colours are identical to DEFAULT_CONFIG. */
-export const DARK_CONFIG: MonotrailConfig = {
+export const DARK_CONFIG: PatchConfig = {
   ...DEFAULT_CONFIG,
   nodeHeaderFill: '#2a2a2a',
   nodeHeaderText: '#eeeeee',
@@ -72,7 +72,7 @@ export const DARK_CONFIG: MonotrailConfig = {
 };
 
 /** Built-in neutral palette — grayscale signal colours, light chrome. */
-export const NEUTRAL_CONFIG: MonotrailConfig = {
+export const NEUTRAL_CONFIG: PatchConfig = {
   ...DEFAULT_CONFIG,
   audioColor: '#a0a0a0',
   cvColor: '#888888',
@@ -90,8 +90,8 @@ export const NEUTRAL_CONFIG: MonotrailConfig = {
   background: '#f5f5f5',
 };
 
-/** Signal type → color key in MonotrailConfig */
-export const SIGNAL_COLOR_KEY: Record<string, keyof MonotrailConfig> = {
+/** Signal type → color key in PatchConfig */
+export const SIGNAL_COLOR_KEY: Record<string, keyof PatchConfig> = {
   audio: 'audioColor',
   cv: 'cvColor',
   voct: 'voctColor',
@@ -100,7 +100,7 @@ export const SIGNAL_COLOR_KEY: Record<string, keyof MonotrailConfig> = {
 };
 
 /** Resolve a signal type to its configured color */
-export function signalColor(type: string, config: MonotrailConfig): string {
+export function signalColor(type: string, config: PatchConfig): string {
   const key = SIGNAL_COLOR_KEY[(type || '').toLowerCase()];
   if (key) return config[key] as string;
   return config.defaultColor;

@@ -1,7 +1,7 @@
 /**
  * scripts/compileGrammar.cjs
  *
- * Pre-compiles monotrail.ne → src/grammar/monotrail.grammar.js (ESM).
+ * Pre-compiles patch.ne → src/grammar/patch.grammar.js (ESM).
  * Run via: node scripts/compileGrammar.cjs
  * Or automatically via the `prebuild` / `pretest` npm scripts.
  */
@@ -14,7 +14,7 @@ const fs   = require('fs');
 const path = require('path');
 
 const src = fs.readFileSync(
-  path.join(__dirname, '../src/grammar/monotrail.ne'),
+  path.join(__dirname, '../src/grammar/patch.ne'),
   'utf-8'
 );
 
@@ -48,8 +48,8 @@ const withoutCjs = iifBody
 // occurrence so the ESM module has no duplicate declaration.
 const deduped = withoutCjs.replace(/^function id\(x\) \{ return x\[0\]; \}\n[ \t]*\n?/, '');
 
-const esm = `// AUTO-GENERATED — do not edit. Run: node scripts/compileGrammar.cjs\n// Source: src/grammar/monotrail.ne\n\n${deduped}\n\nexport { grammar };\nexport default grammar;\n`;
+const esm = `// AUTO-GENERATED — do not edit. Run: node scripts/compileGrammar.cjs\n// Source: src/grammar/patch.ne\n\n${deduped}\n\nexport { grammar };\nexport default grammar;\n`;
 
-const outPath = path.join(__dirname, '../src/grammar/monotrail.grammar.js');
+const outPath = path.join(__dirname, '../src/grammar/patch.grammar.js');
 fs.writeFileSync(outPath, esm, 'utf-8');
-console.log('[monotrail] Grammar compiled →', path.relative(process.cwd(), outPath));
+console.log('[patch] Grammar compiled →', path.relative(process.cwd(), outPath));

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monotrail – Mermaid Plugin Demo</title>
+  <title>Patch Diagram – Mermaid Plugin Demo</title>
   <script type="importmap">
     {
       "imports": {
@@ -143,11 +143,11 @@
   </style>
 </head>
 <body>
-  <header>monotrail – mermaid plugin demo</header>
+  <header>patch diagram – mermaid plugin demo</header>
   <div class="workspace">
     <div class="editor-pane">
       <label>Diagram Source</label>
-      <textarea id="input" spellcheck="false">monotrail
+      <textarea id="input" spellcheck="false">patch
 module Oscillator {
     +voct V/oct
     +audio tri
@@ -199,15 +199,15 @@ vca1:Out -->|Out|</textarea>
   </div>
 
   <script type="module">
-    // Both mermaid and monotrail resolve via the import map to the same CDN
+    // Both mermaid and patch resolve via the import map to the same CDN
     // instance, ensuring mermaid.mermaidAPI.getConfig() in the plugin
     // reflects the config set by mermaid.initialize() here.
     import mermaid from 'mermaid';
 
-    // Load the locally built monotrail plugin.
+    // Load the locally built patch diagram plugin.
     // Path is relative to THIS file (demo/index.html), so go up one level to
     // reach the dist/ folder at the repo root.
-    import monotrail from '../dist/mermaid-monotrail.core.mjs';
+    import patch from '../dist/mermaid-patch.core.mjs';
 
     const statusEl    = document.getElementById('status');
     const renderBtn   = document.getElementById('renderBtn');
@@ -217,7 +217,7 @@ vca1:Out -->|Out|</textarea>
     const themeSelect = document.getElementById('themeSelect');
 
     // Register the external diagram type, then initialise Mermaid.
-    await mermaid.registerExternalDiagrams([monotrail]);
+    await mermaid.registerExternalDiagrams([patch]);
 
     function currentTheme() {
       return themeSelect.value;
@@ -244,7 +244,7 @@ vca1:Out -->|Out|</textarea>
       statusEl.textContent = 'Rendering…';
 
       try {
-        const id = 'monotrail-svg-' + (++renderSeq);
+        const id = 'patch-svg-' + (++renderSeq);
         const { svg } = await mermaid.render(id, text);
         outputEl.innerHTML = svg;
         statusEl.textContent = 'OK';

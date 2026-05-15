@@ -13,7 +13,7 @@ export default defineConfig({
       entry: 'src/detector.ts',
       formats: ['es'],
       fileName: (format, entryName) => {
-        if (entryName === 'detector') return 'mermaid-monotrail.core.mjs';
+        if (entryName === 'detector') return 'mermaid-patch.core.mjs';
         return `${entryName}.mjs`;
       },
     },

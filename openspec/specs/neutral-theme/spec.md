@@ -17,7 +17,7 @@ When the Mermaid `theme` option is set to `'neutral'`, the renderer SHALL apply 
 
 #### Scenario: Neutral theme applies light-grey canvas background
 
-- **WHEN** `mermaid.initialize({ theme: 'neutral' })` is called with no `monotrail.background` override
+- **WHEN** `mermaid.initialize({ theme: 'neutral' })` is called with no `patch.background` override
 - **THEN** the diagram canvas SHALL render with background colour `#f5f5f5`
 
 #### Scenario: Neutral theme node chrome uses neutral greys
@@ -27,7 +27,7 @@ When the Mermaid `theme` option is set to `'neutral'`, the renderer SHALL apply 
 
 #### Scenario: User overrides apply on top of neutral palette
 
-- **WHEN** `mermaid.initialize({ theme: 'neutral', monotrail: { audioColor: '#ff0000' } })` is called
+- **WHEN** `mermaid.initialize({ theme: 'neutral', patch: { audioColor: '#ff0000' } })` is called
 - **THEN** `audioColor` SHALL be `#ff0000` and all other keys SHALL use the neutral palette defaults
 
 #### Scenario: Default theme is unaffected

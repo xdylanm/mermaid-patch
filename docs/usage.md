@@ -11,9 +11,9 @@ The simplest approach: load Mermaid and the plugin from a CDN, serve your HTML f
   <meta charset="UTF-8">
 </head>
 <body>
-  <!-- Diagram source: Mermaid finds all .language-monotrail code blocks -->
+  <!-- Diagram source: Mermaid finds all .language-patch code blocks -->
   <pre class="mermaid">
-monotrail
+patch
 module VCO {
     +voct V/oct
     +audio out
@@ -32,13 +32,13 @@ osc1:out --> lpf1:In
 
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-    import monotrail from 'https://cdn.jsdelivr.net/npm/mermaid-monotrail/dist/mermaid-monotrail.core.mjs';
+    import patch from 'https://cdn.jsdelivr.net/npm/mermaid-patch/dist/mermaid-patch.core.mjs';
 
-    await mermaid.registerExternalDiagrams([monotrail]);
+    await mermaid.registerExternalDiagrams([patch]);
     mermaid.initialize({
       startOnLoad: true,
       theme: 'default',
-      // monotrail: { audioColor: '#e05080' },  // optional overrides
+      // patch: { audioColor: '#e05080' },  // optional overrides
     });
   </script>
 </body>
@@ -58,16 +58,16 @@ python -m http.server 8080
 Install the package:
 
 ```bash
-npm install mermaid mermaid-monotrail
+npm install mermaid mermaid-patch
 ```
 
 Register before calling `initialize`:
 
 ```js
 import mermaid from 'mermaid';
-import monotrail from 'mermaid-monotrail';
+import patch from 'mermaid-patch';
 
-await mermaid.registerExternalDiagrams([monotrail]);
+await mermaid.registerExternalDiagrams([patch]);
 mermaid.initialize({ startOnLoad: true });
 ```
 
@@ -75,7 +75,7 @@ Call `mermaid.render()` to render programmatically:
 
 ```js
 const { svg } = await mermaid.render('my-diagram', `
-monotrail
+patch
 module VCO { +audio out }
 module VCF { +audio In +audio LP }
 VCO osc1
@@ -91,7 +91,7 @@ document.getElementById('output').innerHTML = svg;
 
 ```bash
 pip install mkdocs-material
-npm install mermaid mermaid-monotrail
+npm install mermaid mermaid-patch
 ```
 
 Or if you prefer a CDN build, skip the npm step and adjust the script below.
@@ -122,9 +122,9 @@ extra_javascript:
 
 ```js
 import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-import monotrail from 'https://cdn.jsdelivr.net/npm/mermaid-monotrail/dist/mermaid-monotrail.core.mjs';
+import patch from 'https://cdn.jsdelivr.net/npm/mermaid-patch/dist/mermaid-patch.core.mjs';
 
-await mermaid.registerExternalDiagrams([monotrail]);
+await mermaid.registerExternalDiagrams([patch]);
 mermaid.initialize({
   startOnLoad: true,
   theme: document.documentElement.getAttribute('data-md-color-scheme') === 'slate'
@@ -139,7 +139,7 @@ mermaid.initialize({
 
 ````markdown
 ```mermaid
-monotrail
+patch
 module VCO {
     +voct V/oct
     +audio out
@@ -161,4 +161,4 @@ lpf1:LP --> |output|
 
 ### Note on self-hosted plugin builds
 
-If you want to bundle the plugin instead of loading it from a CDN (e.g. for offline docs or version pinning), copy `node_modules/mermaid-monotrail/dist/mermaid-monotrail.core.mjs` into `docs/javascripts/` and update the import path accordingly.
+If you want to bundle the plugin instead of loading it from a CDN (e.g. for offline docs or version pinning), copy `node_modules/mermaid-patch/dist/mermaid-patch.core.mjs` into `docs/javascripts/` and update the import path accordingly.

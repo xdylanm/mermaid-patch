@@ -1,14 +1,14 @@
-# Nearley grammar for Monotrail (Mermaid patch diagram plugin)
+# Nearley grammar for patch diagrams (Mermaid patch diagram plugin)
 #
-# Diagram blocks start with the keyword "monotrail" on the first line.
+# Diagram blocks start with the keyword "patch" on the first line.
 # All subsequent statements follow the same syntax as the original patchDiagram.
 
 @{% 
 function id(d) { return d[0]; }
 %}
 
-main -> "monotrail" ws statementList ws {% d => d[2] %}
-      | "monotrail" ws {% d => [] %}
+main -> "patch" ws statementList ws {% d => d[2] %}
+      | "patch" ws {% d => [] %}
 
 statementList -> statement (newline statement):* {% 
   d => [d[0], ...(d[1].map(x => x[1]))] 

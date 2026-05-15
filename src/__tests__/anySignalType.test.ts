@@ -29,7 +29,7 @@ function edgesBetween(
 
 describe('any signal type — resolution from concrete counterpart', () => {
   // passthrough:Out (any) → vca1:In (audio)
-  const diagram = `monotrail
+  const diagram = `patch
 module Passthrough {
     +any In
     +any Out
@@ -64,7 +64,7 @@ pass1:Out --> vca1:In`;
 // ── Scenario: concrete → any — the any input resolves to the concrete source type ──
 
 describe('any signal type — concrete source resolves any destination', () => {
-  const diagram = `monotrail
+  const diagram = `patch
 module VCO {
     +voct Voct
     +audio Out
@@ -93,7 +93,7 @@ pass1:Out -->|signal|`;
 // ── Scenario: any-to-any resolves to cv ───────────────────────────────────────
 
 describe('any signal type — any-to-any resolves to cv', () => {
-  const diagram = `monotrail
+  const diagram = `patch
 module A {
     +any Out
 }
@@ -123,7 +123,7 @@ nodeA:Out --> nodeB:In`;
 // ── Scenario: fan-out from any to uniform concrete type ───────────────────────
 
 describe('any signal type — fan-out to uniform type resolves to that type', () => {
-  const diagram = `monotrail
+  const diagram = `patch
 module Splitter {
     +any In
     +any OutA
@@ -159,7 +159,7 @@ split1:OutB --> vca2:In
 // ── Scenario: fan-out from any to mixed types resolves to cv ─────────────────
 
 describe('any signal type — fan-out to mixed types resolves to cv', () => {
-  const diagram = `monotrail
+  const diagram = `patch
 module Router {
     +any In
     +any AudioOut
@@ -204,7 +204,7 @@ router1:CvOut --> env1:In`;
 // ── Scenario: unconnected any port is not rendered ────────────────────────────
 
 describe('any signal type — unconnected any port is hidden', () => {
-  const diagram = `monotrail
+  const diagram = `patch
 module Passthrough {
     +any In
     +any Out

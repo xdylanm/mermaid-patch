@@ -1,7 +1,7 @@
 /**
- * Monotrail parser.
+ * Patch diagram parser.
  *
- * At build time, Vite's nearley plugin compiles monotrail.ne into an ES module
+ * At build time, Vite's nearley plugin compiles patch.ne into an ES module
  * that exports a compiled grammar object. At runtime, the nearley parser
  * runtime (`nearley` package) uses that grammar to parse diagram text.
  *
@@ -9,21 +9,21 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import nearley from 'nearley';
-import type { MonotrailAST } from './types.js';
+import type { PatchAST } from './types.js';
 import db from './db.js';
 import { log } from './mermaidUtils.js';
 
-// Grammar compiled from monotrail.ne by scripts/compileGrammar.cjs
+// Grammar compiled from patch.ne by scripts/compileGrammar.cjs
 // @ts-expect-error — generated JS file, no types
-import grammar from './grammar/monotrail.grammar.js';
+import grammar from './grammar/patch.grammar.js';
 
-function parseMonotrail(text: string): MonotrailAST {
+function parsePatch(text: string): PatchAST {
   const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
   parser.feed(normalized);
 
   if (!parser.results || parser.results.length === 0) {
-    throw new Error('Monotrail: no parse result — check diagram syntax');
+    throw new Error('Patch: no parse result — check diagram syntax');
   }
 
   const statements: unknown[] = parser.results[0];
@@ -41,20 +41,20 @@ function parseMonotrail(text: string): MonotrailAST {
       (s as { type: string }).type === 'dangling'
   );
 
-  return { modules, nodes, connections } as MonotrailAST;
+  return { modules, nodes, connections } as PatchAST;
 }
 
 const parser = {
   parse(text: string): void {
     try {
-      const ast = parseMonotrail(text);
+      const ast = parsePatch(text);
       db.setData(ast);
     } catch (e) {
-      log.error('Monotrail parse error:', String(e));
+      log.error('Patch parse error:', String(e));
       throw e;
     }
   },
 };
 
 export default parser;
-export { parseMonotrail };
+export { parsePatch };

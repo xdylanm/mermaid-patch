@@ -1,8 +1,8 @@
 node_modules/
 dist/
 
-# Auto-generated from src/grammar/monotrail.ne
-src/grammar/monotrail.grammar.js
+# Auto-generated from src/grammar/patch.ne
+src/grammar/patch.grammar.js
 
 # Misc
 .DS_Store

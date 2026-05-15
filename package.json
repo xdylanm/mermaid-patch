@@ -1,13 +1,13 @@
 {
-  "name": "mermaid-monotrail",
+  "name": "mermaid-patch",
   "version": "0.1.0",
-  "description": "Mermaid plugin for Monotrail patch diagram diagrams",
-  "module": "dist/mermaid-monotrail.core.mjs",
+  "description": "Mermaid plugin for patch diagram diagrams",
+  "module": "dist/mermaid-patch.core.mjs",
   "types": "dist/detector.d.ts",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/mermaid-monotrail.core.mjs",
+      "import": "./dist/mermaid-patch.core.mjs",
       "types": "./dist/detector.d.ts"
     },
     "./*": "./*"
@@ -15,7 +15,6 @@
   "keywords": [
     "diagram",
     "mermaid",
-    "monotrail",
     "patch",
     "modular-synth"
   ],

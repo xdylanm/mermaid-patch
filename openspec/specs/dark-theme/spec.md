@@ -44,10 +44,10 @@ When the Mermaid `theme` is `'dark'`, the SVG canvas background colour SHALL be 
 
 #### Scenario: Dark theme default canvas background
 
-- **WHEN** `mermaid.initialize({ theme: 'dark' })` is called with no `monotrail.background` or `themeVariables.background` override
+- **WHEN** `mermaid.initialize({ theme: 'dark' })` is called with no `patch.background` or `themeVariables.background` override
 - **THEN** `background` SHALL be `#1e1e2e`
 
 #### Scenario: User background override respected in dark theme
 
-- **WHEN** `mermaid.initialize({ theme: 'dark', monotrail: { background: '#0d1117' } })` is called
+- **WHEN** `mermaid.initialize({ theme: 'dark', patch: { background: '#0d1117' } })` is called
 - **THEN** the canvas SHALL render with background `#0d1117`

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines the layout algorithm used to produce compact, crossing-minimal Monotrail diagrams. The layout uses a multi-pass ELK strategy seeded by a deterministic topological connection sort.
+Defines the layout algorithm used to produce compact, crossing-minimal patch diagrams. The layout uses a multi-pass ELK strategy seeded by a deterministic topological connection sort.
 
 ## Requirements
 

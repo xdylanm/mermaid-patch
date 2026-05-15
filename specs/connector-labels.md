@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Defines the requirements for labeled arrow connectors in Monotrail diagrams. Connectors (full connections and dangling stubs) MAY carry a text label using Mermaid pipe syntax (`-->|label text|`), rendered along the connector wire or at the open end of a stub.
+Defines the requirements for labeled arrow connectors in patch diagrams. Connectors (full connections and dangling stubs) MAY carry a text label using Mermaid pipe syntax (`-->|label text|`), rendered along the connector wire or at the open end of a stub.
 
 ## Requirements
 
 ### Requirement: Full connection with label
 
-A Monotrail arrow connector MAY include a text label using Mermaid pipe syntax. When a label is present in a full connection (`sourceId:Port -->|label text| destId:Port`), the diagram SHALL render the label string along the connector wire.
+A patch diagram arrow connector MAY include a text label using Mermaid pipe syntax. When a label is present in a full connection (`sourceId:Port -->|label text| destId:Port`), the diagram SHALL render the label string along the connector wire.
 
 #### Scenario: Parse labeled full connection
 - **WHEN** the diagram text contains `vca1:Out -->|my note| mix1:In1`
@@ -26,7 +26,7 @@ A Monotrail arrow connector MAY include a text label using Mermaid pipe syntax. 
 
 ### Requirement: Dangling-to connection with label
 
-A Monotrail diagram MAY declare a dangling arrow that terminates at a port with a label at the open (source) end, using the syntax `-->|label text| destId:Port`.
+A patch diagram MAY declare a dangling arrow that terminates at a port with a label at the open (source) end, using the syntax `-->|label text| destId:Port`.
 
 #### Scenario: Parse dangling-to labeled connection
 - **WHEN** the diagram text contains `-->|keyboard| mix1:In1`

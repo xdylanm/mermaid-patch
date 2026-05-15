@@ -1,9 +1,9 @@
 import type { MermaidConfig } from 'mermaid';
 import mermaid from 'mermaid';
-import type { MonotrailAST } from './types.js';
-import { DEFAULT_CONFIG, DARK_CONFIG, NEUTRAL_CONFIG, type MonotrailConfig } from './config.js';
+import type { PatchAST } from './types.js';
+import { DEFAULT_CONFIG, DARK_CONFIG, NEUTRAL_CONFIG, type PatchConfig } from './config.js';
 
-let _ast: MonotrailAST | null = null;
+let _ast: PatchAST | null = null;
 
 /** Parse a pixel/number value from a themeVariables entry (e.g. '16px' → 16). */
 function parseThemeSize(raw: unknown): number | undefined {
@@ -20,7 +20,7 @@ function parseThemeColor(raw: unknown): string | undefined {
   return typeof raw === 'string' && raw.trim() !== '' ? raw.trim() : undefined;
 }
 
-function resolvedConfig(): MonotrailConfig {
+function resolvedConfig(): PatchConfig {
   let mermaidConf: MermaidConfig;
   try {
     mermaidConf = mermaid.mermaidAPI.getConfig();
@@ -37,10 +37,10 @@ function resolvedConfig(): MonotrailConfig {
   // 2. Build an override from supported themeVariables.
   // Node chrome variables (primaryColor etc.) are only applied for non-default themes,
   // because Mermaid auto-populates themeVariables even when theme: 'default', which
-  // would stomp the intentional Monotrail default palette.
+  // would stomp the intentional patch diagram default palette.
   const tv = (mermaidConf.themeVariables ?? {}) as Record<string, unknown>;
-  const themeVarOverride: Partial<MonotrailConfig> = {};
-  const col = (k: keyof MonotrailConfig, v: string | undefined) => { if (v) (themeVarOverride as Record<string, unknown>)[k] = v; };
+  const themeVarOverride: Partial<PatchConfig> = {};
+  const col = (k: keyof PatchConfig, v: string | undefined) => { if (v) (themeVarOverride as Record<string, unknown>)[k] = v; };
   col('background', parseThemeColor(tv['background']));
   col('fontFamily', parseThemeColor(tv['fontFamily']));
   const fs = parseThemeSize(tv['fontSize']);
@@ -55,9 +55,9 @@ function resolvedConfig(): MonotrailConfig {
     col('nodeBodyText',    parseThemeColor(tv['secondaryTextColor']));
   }
 
-  // 3. User's monotrail key — only accept the non-color keys.
-  const raw = (mermaidConf as Record<string, unknown>).monotrail as Record<string, unknown> | undefined;
-  const userOverride: Partial<MonotrailConfig> = {};
+  // 3. User's patch key — only accept the non-color keys.
+  const raw = (mermaidConf as Record<string, unknown>).patch as Record<string, unknown> | undefined;
+  const userOverride: Partial<PatchConfig> = {};
   if (raw) {
     if (typeof raw['background'] === 'string' && raw['background'].trim())
       userOverride.background = (raw['background'] as string).trim();
@@ -79,15 +79,15 @@ function resolvedConfig(): MonotrailConfig {
 }
 
 const db = {
-  setData(ast: MonotrailAST): void {
+  setData(ast: PatchAST): void {
     _ast = ast;
   },
 
-  getData(): MonotrailAST | null {
+  getData(): PatchAST | null {
     return _ast;
   },
 
-  getConfig(): MonotrailConfig {
+  getConfig(): PatchConfig {
     return resolvedConfig();
   },
 
@@ -97,4 +97,4 @@ const db = {
 };
 
 export default db;
-export type MonotrailDB = typeof db;
+export type PatchDB = typeof db;

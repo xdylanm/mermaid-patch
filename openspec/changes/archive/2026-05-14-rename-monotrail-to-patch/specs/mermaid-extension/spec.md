@@ -1,10 +1,4 @@
-# Spec: Mermaid Extension
-
-## Purpose
-
-Defines how the patch diagram type integrates with the Mermaid diagramming library as a registered external diagram, including support for the ELK layout engine, the `mkdocs-material` documentation site generator, and Mermaid's built-in theme and color-palette configuration system.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Registered as a Mermaid external diagram
 
@@ -19,22 +13,6 @@ The package SHALL export a default value that conforms to Mermaid's `ExternalDia
 
 - **WHEN** the package is installed from npm and registered with `mermaid.registerExternalDiagrams([patch])`
 - **THEN** `mermaid.render(id, diagramText)` SHALL resolve to an SVG string for any valid patch diagram text
-
----
-
-### Requirement: ELK layout engine
-
-The layout engine SHALL use ELK (Eclipse Layout Kernel) via `elkjs` for node placement and layering. ELK SHALL be bundled with the package so that consumers do not need to install it separately.
-
-#### Scenario: ELK bundled in package output
-
-- **WHEN** the package is built
-- **THEN** the output bundle SHALL include `elkjs` so that no separate `elkjs` peer dependency is required from the consumer
-
-#### Scenario: Layout uses NETWORK_SIMPLEX layering
-
-- **WHEN** a patch diagram is rendered
-- **THEN** the ELK graph SHALL be configured with `layering.strategy: NETWORK_SIMPLEX`
 
 ---
 

@@ -1,4 +1,4 @@
-monotrail
+patch
 module Sequencer {
     +voct pitch
     +gate gate

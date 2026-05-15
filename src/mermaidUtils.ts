@@ -1,7 +1,7 @@
 import type { MermaidConfig } from 'mermaid';
 
 const warning = (s: string) => {
-  console.error('Monotrail: log function called before initialization', s);
+  console.error('Patch: log function called before initialization', s);
 };
 
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
@@ -41,7 +41,7 @@ export const injectUtils = (
   _sanitizeText: typeof sanitizeText,
   _setupGraphViewbox: typeof setupGraphViewbox
 ) => {
-  _log.info('Monotrail utils injected');
+  _log.info('Patch utils injected');
   log.trace = _log.trace;
   log.debug = _log.debug;
   log.info = _log.info;

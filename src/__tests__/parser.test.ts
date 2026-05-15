@@ -1,15 +1,15 @@
 /**
  * Parser tests — adapted from patchlog's patchDiagramParser.test.js.
  *
- * Each test input must include the "monotrail" keyword prefix required by the
- * Monotrail grammar.
+ * Each test input must include the "patch" keyword prefix required by the
+ * patch diagram grammar.
  */
 import { describe, it, expect } from 'vitest';
-import { parseMonotrail } from '../parser.js';
+import { parsePatch } from '../parser.js';
 
-describe('parseMonotrail', () => {
+describe('parsePatch', () => {
   it('parses the PRD example correctly', () => {
-    const input = `monotrail
+    const input = `patch
 module Oscillator {
     +voct V/oct
     +cv FM
@@ -28,7 +28,7 @@ Oscillator osc1
 
 osc1:Out --> vca1:In`;
 
-    const ast = parseMonotrail(input);
+    const ast = parsePatch(input);
     expect(ast).toHaveProperty('modules');
     expect(ast).toHaveProperty('nodes');
     expect(ast).toHaveProperty('connections');
@@ -44,7 +44,7 @@ osc1:Out --> vca1:In`;
   });
 
   it('parses an unlabeled connection without a label field', () => {
-    const input = `monotrail
+    const input = `patch
 module VCA {
     +audio In
     +audio Out
@@ -52,7 +52,7 @@ module VCA {
 VCA vca1
 VCA mix1
 vca1:Out --> mix1:In`;
-    const ast = parseMonotrail(input);
+    const ast = parsePatch(input);
     const conn = ast.connections[0];
     expect(conn.type).toBe('connection');
     expect(conn.from).toBe('vca1');
@@ -63,7 +63,7 @@ vca1:Out --> mix1:In`;
   });
 
   it('parses a labeled full connection', () => {
-    const input = `monotrail
+    const input = `patch
 module VCA {
     +audio In
     +audio Out
@@ -71,7 +71,7 @@ module VCA {
 VCA vca1
 VCA mix1
 vca1:Out -->|my note| mix1:In`;
-    const ast = parseMonotrail(input);
+    const ast = parsePatch(input);
     const conn = ast.connections[0];
     expect(conn.type).toBe('connection');
     expect(conn.from).toBe('vca1');
@@ -82,13 +82,13 @@ vca1:Out -->|my note| mix1:In`;
   });
 
   it('parses a dangling-from labeled connection', () => {
-    const input = `monotrail
+    const input = `patch
 module VCA {
     +audio Out
 }
 VCA vca1
 vca1:Out -->|audio out|`;
-    const ast = parseMonotrail(input);
+    const ast = parsePatch(input);
     const conn = ast.connections[0];
     expect(conn.type).toBe('dangling');
     expect(conn.direction).toBe('from');
@@ -98,13 +98,13 @@ vca1:Out -->|audio out|`;
   });
 
   it('parses a dangling-to labeled connection', () => {
-    const input = `monotrail
+    const input = `patch
 module Mixer {
     +audio In1
 }
 Mixer mix1
 -->|keyboard| mix1:In1`;
-    const ast = parseMonotrail(input);
+    const ast = parsePatch(input);
     const conn = ast.connections[0];
     expect(conn.type).toBe('dangling');
     expect(conn.direction).toBe('to');
@@ -116,61 +116,61 @@ Mixer mix1
 
 describe('invalid module definitions and declarations', () => {
   it('rejects uppercase signal type (e.g. +Audio)', () => {
-    const input = `monotrail
+    const input = `patch
 module VCA {
     +Audio In
     +audio Out
 }
 VCA vca1`;
-    expect(() => parseMonotrail(input)).toThrow();
+    expect(() => parsePatch(input)).toThrow();
   });
 
   it('rejects old V_oct convention — uppercase and underscore in signal type', () => {
-    const input = `monotrail
+    const input = `patch
 module Osc {
     +V_oct pitch
     +audio Out
 }
 Osc osc1`;
-    expect(() => parseMonotrail(input)).toThrow();
+    expect(() => parsePatch(input)).toThrow();
   });
 
   it('rejects signal type containing a slash (e.g. +v/oct)', () => {
-    const input = `monotrail
+    const input = `patch
 module Osc {
     +v/oct pitch
     +audio Out
 }
 Osc osc1`;
-    expect(() => parseMonotrail(input)).toThrow();
+    expect(() => parsePatch(input)).toThrow();
   });
 
   it('rejects signal type containing a digit (e.g. +audio1)', () => {
-    const input = `monotrail
+    const input = `patch
 module VCA {
     +audio1 In
     +audio Out
 }
 VCA vca1`;
-    expect(() => parseMonotrail(input)).toThrow();
+    expect(() => parsePatch(input)).toThrow();
   });
 
   it('rejects a module name starting with a digit', () => {
-    const input = `monotrail
+    const input = `patch
 module 123VCA {
     +audio In
 }
 123VCA vca1`;
-    expect(() => parseMonotrail(input)).toThrow();
+    expect(() => parsePatch(input)).toThrow();
   });
 
   it('rejects a node name starting with a digit', () => {
-    const input = `monotrail
+    const input = `patch
 module VCA {
     +audio In
     +audio Out
 }
 VCA 1vca`;
-    expect(() => parseMonotrail(input)).toThrow();
+    expect(() => parsePatch(input)).toThrow();
   });
 });

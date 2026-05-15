@@ -1,9 +1,9 @@
-# Monotrail Patch Diagrams for Mermaid
+# Patch Diagrams for Mermaid
 
-A [Mermaid](https://mermaid.js.org) plugin that adds a **Monotrail** diagram type for drawing modular synthesizer patch diagrams.
+A [Mermaid](https://mermaid.js.org) plugin that adds a **patch diagram** type for drawing modular synthesizer patch diagrams.
 
 ```
-monotrail
+patch
 module Oscillator {
     +voct V/oct
     +audio out
@@ -25,7 +25,7 @@ Modules are rendered as blocks with typed ports (audio, CV, V/oct, gate). Connec
 ## Install
 
 ```bash
-npm install mermaid-monotrail
+npm install mermaid-patch
 ```
 
 Requires `mermaid ^11` as a peer dependency.
@@ -34,9 +34,9 @@ Requires `mermaid ^11` as a peer dependency.
 
 ```js
 import mermaid from 'mermaid';
-import monotrail from 'mermaid-monotrail';
+import patch from 'mermaid-patch';
 
-await mermaid.registerExternalDiagrams([monotrail]);
+await mermaid.registerExternalDiagrams([patch]);
 mermaid.initialize({ startOnLoad: true });
 ```
 

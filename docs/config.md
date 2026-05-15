@@ -1,22 +1,22 @@
 # Configuration
 
-Pass a `monotrail` key inside `mermaid.initialize()` to override layout and typography options.
+Pass a `patch` key inside `mermaid.initialize()` to override layout and typography options.
 
 ```js
 mermaid.initialize({
   theme: 'dark',
-  monotrail: {
+  patch: {
     portPlacement: 'declaration',
     fontSize: 16,
   },
 });
 ```
 
-Signal colours and node chrome colours are **not** settable via `monotrail.*`. Use the standard Mermaid `theme` and `themeVariables` options instead (see below).
+Signal colours and node chrome colours are **not** settable via `patch.*`. Use the standard Mermaid `theme` and `themeVariables` options instead (see below).
 
 ## Themes
 
-Setting Mermaid's `theme` option automatically applies a built-in Monotrail palette:
+Setting Mermaid's `theme` option automatically applies a built-in patch diagram palette:
 
 | Theme | Signal colours | Node body | Canvas background |
 |-------|---------------|-----------|-------------------|
@@ -26,13 +26,13 @@ Setting Mermaid's `theme` option automatically applies a built-in Monotrail pale
 
 ## Mermaid theme variables
 
-The following standard Mermaid `themeVariables` are mapped to Monotrail colours. `background`, `fontFamily`, and `fontSize` apply for all themes. The node chrome variables (`primaryColor` etc.) are only applied when `theme` is `dark` or `neutral` — Mermaid auto-populates these even for the `default` theme, so applying them would override the intentional Monotrail default palette.
+The following standard Mermaid `themeVariables` are mapped to patch diagram colours. `background`, `fontFamily`, and `fontSize` apply for all themes. The node chrome variables (`primaryColor` etc.) are only applied when `theme` is `dark` or `neutral` — Mermaid auto-populates these even for the `default` theme, so applying them would override the intentional patch diagram default palette.
 
 | Theme variable | Affects | Notes |
 |---------------|---------|-------|
-| `background` | SVG canvas fill | Also settable via `monotrail.background` |
-| `fontFamily` | Font for all text | Also settable via `monotrail.fontFamily` |
-| `fontSize` | Base font size for node names | `px` suffix stripped; also via `monotrail.fontSize` |
+| `background` | SVG canvas fill | Also settable via `patch.background` |
+| `fontFamily` | Font for all text | Also settable via `patch.fontFamily` |
+| `fontSize` | Base font size for node names | `px` suffix stripped; also via `patch.fontSize` |
 | `primaryColor` | Node name bar background | — |
 | `primaryTextColor` | Node name bar text | — |
 | `primaryBorderColor` | Node outline stroke | — |
@@ -58,14 +58,14 @@ mermaid.initialize({
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `monotrail.background` | palette default | SVG background fill. Overrides `themeVariables.background`. |
+| `patch.background` | palette default | SVG background fill. Overrides `themeVariables.background`. |
 
 ## Typography
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `monotrail.fontFamily` | `'Arial, sans-serif'` | Font family for all SVG text. Overrides `themeVariables.fontFamily`. |
-| `monotrail.fontSize` | `18` | Base font size for node names (px). Port badge labels use `fontSize − 3`, edge labels use `fontSize − 5` (minimum 10 for both). Overrides `themeVariables.fontSize`. |
+| `patch.fontFamily` | `'Arial, sans-serif'` | Font family for all SVG text. Overrides `themeVariables.fontFamily`. |
+| `patch.fontSize` | `18` | Base font size for node names (px). Port badge labels use `fontSize − 3`, edge labels use `fontSize − 5` (minimum 10 for both). Overrides `themeVariables.fontSize`. |
 
 ## Layout options
 

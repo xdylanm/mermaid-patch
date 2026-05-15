@@ -213,7 +213,7 @@ describe('inspectLayout output shape', () => {
 // ── Connector labels ──────────────────────────────────────────────────────────
 
 describe('connector labels', () => {
-  const diagram = `monotrail
+  const diagram = `patch
 module VCO {
     +audio Out
 }
@@ -285,7 +285,7 @@ vca1:Out -->|Main out|
 // ── Unconnected port hiding ───────────────────────────────────────────────────
 
 describe('unconnected port hiding', () => {
-  const diagram = `monotrail
+  const diagram = `patch
 module VCA {
     +audio In
     +cv CV

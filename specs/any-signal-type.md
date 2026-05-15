@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Defines the `any` signal type for use in Monotrail module port declarations. An `any` port defers its rendered signal type to its connected counterpart at render time, enabling reusable utility modules that work across audio, CV, gate, and v/oct signals without declaring a fixed type.
+Defines the `any` signal type for use in patch diagram module port declarations. An `any` port defers its rendered signal type to its connected counterpart at render time, enabling reusable utility modules that work across audio, CV, gate, and v/oct signals without declaring a fixed type.
 
 ## Requirements
 
 ### Requirement: `any` is a valid signal type identifier
 
-A Monotrail module port SHALL accept `any` as a valid `<signalType>` value. The parser SHALL treat it identically to other signal type identifiers (e.g., `audio`, `cv`), producing a port object with `type: 'any'`.
+A patch diagram module port SHALL accept `any` as a valid `<signalType>` value. The parser SHALL treat it identically to other signal type identifiers (e.g., `audio`, `cv`), producing a port object with `type: 'any'`.
 
 #### Scenario: Parse module with any-typed port
 

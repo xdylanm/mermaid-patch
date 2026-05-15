@@ -1,11 +1,11 @@
 /**
- * Monotrail SVG renderer.
+ * Patch diagram SVG renderer.
  *
  * Implements Mermaid's DrawDefinition interface. Calls buildLayout() then
  * renders nodes, port badges, wires, dangling stubs, and warnings into the
  * SVG element identified by `id`.
  */
-import type { MonotrailConfig } from './config.js';
+import type { PatchConfig } from './config.js';
 import { signalColor } from './config.js';
 import type { Connection, NodeLayout, Side } from './types.js';
 import {
@@ -25,7 +25,7 @@ import {
   DANGLING_LEN,
   SIDE_DIR,
 } from './layout.js';
-import type { MonotrailDB } from './db.js';
+import type { PatchDB } from './db.js';
 import { log, sanitizeText as _sanitizeText } from './mermaidUtils.js';
 
 // ── SVG helpers ───────────────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ function trapPoints(bx: number, by: number, side: Side): string {
   }
 }
 
-function badgeLabel(text: unknown, bx: number, by: number, side: Side, config: MonotrailConfig): Element {
+function badgeLabel(text: unknown, bx: number, by: number, side: Side, config: PatchConfig): Element {
   const d = BADGE_D;
   let tx: number, ty: number, rotate = '';
   switch (side) {
@@ -139,7 +139,7 @@ function addArrowMarkers(svgElement: Element, colors: string[]): void {
 
 // ── Node rendering ────────────────────────────────────────────────────────────
 
-function renderNodeBadges(nl: NodeLayout, config: MonotrailConfig): Element {
+function renderNodeBadges(nl: NodeLayout, config: PatchConfig): Element {
   const g = svgEl('g', {});
   for (const port of nl.allPorts) {
     const color = signalColor(port.type, config);
@@ -150,7 +150,7 @@ function renderNodeBadges(nl: NodeLayout, config: MonotrailConfig): Element {
   return g;
 }
 
-function renderNodeBox(nl: NodeLayout, config: MonotrailConfig): Element {
+function renderNodeBox(nl: NodeLayout, config: PatchConfig): Element {
   const { x, y, label, moduleType } = nl;
   const g = svgEl('g', {});
 
@@ -215,7 +215,7 @@ function longestSegmentMidpoint(pts: Array<{ x: number; y: number }>): { x: numb
 function renderDangling(
   conn: Connection,
   layout: Record<string, NodeLayout>,
-  config: MonotrailConfig
+  config: PatchConfig
 ): Element | null {
   if (conn.direction === 'to') return renderDanglingTo(conn, layout, config);
 
@@ -261,7 +261,7 @@ function renderDangling(
 function renderDanglingTo(
   conn: Connection,
   layout: Record<string, NodeLayout>,
-  config: MonotrailConfig
+  config: PatchConfig
 ): Element | null {
   const toNode = conn.to ? layout[conn.to] : null;
   if (!toNode) return null;
@@ -308,7 +308,7 @@ function renderElkEdge(
   destSide: Side,
   color: string,
   label: string | null | undefined,
-  config: MonotrailConfig
+  config: PatchConfig
 ): Element[] {
   const [sdx, sdy] = SIDE_DIR[srcSide] ?? [1, 0];
   const [ddx, ddy] = SIDE_DIR[destSide] ?? [-1, 0];
@@ -354,13 +354,13 @@ export const draw = async (
   text: string,
   id: string,
   _version: string,
-  diagram: { db: MonotrailDB }
+  diagram: { db: PatchDB }
 ): Promise<void> => {
-  log.info('Monotrail draw', id);
+  log.info('Patch draw', id);
 
   const svgElement = document.querySelector<SVGSVGElement>(`#${CSS.escape(id)}`);
   if (!svgElement) {
-    log.error('Monotrail: cannot find SVG element', id);
+    log.error('Patch: cannot find SVG element', id);
     return;
   }
 
@@ -372,7 +372,7 @@ export const draw = async (
   const ast = db.getData();
 
   if (!ast) {
-    log.error('Monotrail: no AST in db for', id);
+    log.error('Patch: no AST in db for', id);
     return;
   }
 
@@ -388,7 +388,7 @@ export const draw = async (
   try {
     ({ layout, edgeSections } = await buildLayout(ast, portInfo, broken, config));
   } catch (e) {
-    log.error('Monotrail layout error:', String(e));
+    log.error('Patch layout error:', String(e));
     const err = svgText('Layout error: ' + String(e), {
       x: 20, y: 30, fill: '#cc0000', 'font-family': 'monospace', 'font-size': '13',
     });
@@ -504,7 +504,7 @@ export const draw = async (
   // ── Draw order: edges → badges → boxes ───────────────────────────────────
 
   // 1. Wires (behind nodes)
-  const edgesG = svgEl('g', { class: 'monotrail-edges' });
+  const edgesG = svgEl('g', { class: 'patch-edges' });
   ast.connections.forEach((conn, i) => {
     if (broken.has(conn)) return;
 
@@ -536,19 +536,19 @@ export const draw = async (
   svgElement.appendChild(edgesG);
 
   // 2. Port badges (in front of wires, behind box outlines)
-  const badgesG = svgEl('g', { class: 'monotrail-badges' });
+  const badgesG = svgEl('g', { class: 'patch-badges' });
   for (const nl of allNl) badgesG.appendChild(renderNodeBadges(nl, config));
   svgElement.appendChild(badgesG);
 
   // 3. Node boxes (on top)
-  const boxesG = svgEl('g', { class: 'monotrail-nodes' });
+  const boxesG = svgEl('g', { class: 'patch-nodes' });
   for (const nl of allNl) boxesG.appendChild(renderNodeBox(nl, config));
   svgElement.appendChild(boxesG);
 
   // 4. Warnings panel
   if (warnings.length) {
     const panelY = svgHeight;
-    const panelG = svgEl('g', { class: 'monotrail-warnings' });
+    const panelG = svgEl('g', { class: 'patch-warnings' });
     panelG.appendChild(svgEl('rect', {
       x: 0, y: panelY,
       width: svgWidth, height: warningPanelH,

@@ -1,5 +1,5 @@
 /**
- * Mermaid DiagramDefinition for Monotrail.
+ * Mermaid DiagramDefinition for patch diagrams.
  *
  * Assembles parser, renderer, styles, and db into the shape Mermaid
  * expects when a diagram type is registered.

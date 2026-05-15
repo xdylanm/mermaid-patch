@@ -1,5 +1,5 @@
 /**
- * ELK-based layout engine for Monotrail diagrams.
+ * ELK-based layout engine for patch diagrams.
  *
  * This is a direct port of buildElkLayout() from patchlog/renderPatchDiagram.js,
  * converted to TypeScript with elkjs imported directly (bundled).
@@ -8,7 +8,7 @@
  */
 import ELK from 'elkjs/lib/elk.bundled.js';
 import type {
-  MonotrailAST,
+  PatchAST,
   Connection,
   LayoutResult,
   NodeLayout,
@@ -16,9 +16,9 @@ import type {
   Side,
   SignalType,
 } from './types.js';
-import type { MonotrailConfig } from './config.js';
+import type { PatchConfig } from './config.js';
 import { DEFAULT_CONFIG } from './config.js';
-import { parseMonotrail } from './parser.js';
+import { parsePatch } from './parser.js';
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 export const BOX_W = 140;
@@ -69,7 +69,7 @@ export interface PortInfo {
   inPorts: Record<string, Set<string>>;
 }
 
-export function prepareConnections(ast: MonotrailAST): PortInfo {
+export function prepareConnections(ast: PatchAST): PortInfo {
   const moduleDefs: PortInfo['moduleDefs'] = {};
   for (const m of ast.modules) moduleDefs[m.name] = m;
 
@@ -106,7 +106,7 @@ export function prepareConnections(ast: MonotrailAST): PortInfo {
 // ── Any signal type resolution ────────────────────────────────────────────────
 
 function resolveAnyTypes(
-  ast: MonotrailAST,
+  ast: PatchAST,
   portMeta: Record<string, Record<string, PortMeta>>
 ): void {
   const originalType: Record<string, Record<string, string>> = {};
@@ -165,7 +165,7 @@ function resolveAnyTypes(
 
 // ── Connection validation ─────────────────────────────────────────────────────
 
-export function validateConnections(ast: MonotrailAST): {
+export function validateConnections(ast: PatchAST): {
   warnings: string[];
   broken: Set<Connection>;
 } {
@@ -234,10 +234,10 @@ export function portTipFn(nl: NodeLayout, portName?: string | null): { x: number
 // ── ELK layout ────────────────────────────────────────────────────────────────
 
 export async function buildLayout(
-  ast: MonotrailAST,
+  ast: PatchAST,
   portInfo: PortInfo,
   brokenConns: Set<Connection>,
-  config: MonotrailConfig
+  config: PatchConfig
 ): Promise<LayoutResult> {
   const { moduleDefs, outPorts, inPorts } = portInfo;
   const { portPlacement = 'elk-optimized', nodePlacementStrategy = 'brandes-koepf' } = config;
@@ -739,9 +739,9 @@ const SIDE_NAME: Record<Side, string> = { left: 'W', right: 'E', top: 'N', botto
 
 export async function inspectLayout(
   text: string,
-  opts: { portPlacement?: MonotrailConfig['portPlacement']; nodePlacementStrategy?: MonotrailConfig['nodePlacementStrategy'] } = {}
+  opts: { portPlacement?: PatchConfig['portPlacement']; nodePlacementStrategy?: PatchConfig['nodePlacementStrategy'] } = {}
 ): Promise<LayoutInspection> {
-  const ast = parseMonotrail(text);
+  const ast = parsePatch(text);
   const portInfo = prepareConnections(ast);
   const { broken } = validateConnections(ast);
   const config = { ...DEFAULT_CONFIG, ...opts };

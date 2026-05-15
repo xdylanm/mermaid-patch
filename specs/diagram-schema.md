@@ -1,14 +1,14 @@
-# Spec: Monotrail Diagram Schema
+# Spec: patch diagram Schema
 
 ## Purpose
 
-Defines the text syntax (schema) for the Monotrail diagram type — a domain-specific diagram language that extends Mermaid conventions to describe modular signal-flow graphs, such as synthesizer patch bays. A diagram describes modules (reusable port templates), node instances of those modules, and the connections (wires) between ports.
+Defines the text syntax (schema) for the patch diagram type — a domain-specific diagram language that extends Mermaid conventions to describe modular signal-flow graphs, such as synthesizer patch bays. A diagram describes modules (reusable port templates), node instances of those modules, and the connections (wires) between ports.
 
-Every Monotrail diagram begins with the keyword `monotrail` on the first line.
+Every patch diagram begins with the keyword `patch diagram` on the first line.
 
 ## Statement Types
 
-A Monotrail document is a sequence of newline-separated statements. Blank lines and leading/trailing whitespace are ignored. There are five statement types: module definitions, node definitions, full connections, labeled dangling-from stubs, and labeled dangling-to stubs.
+A patch diagram document is a sequence of newline-separated statements. Blank lines and leading/trailing whitespace are ignored. There are five statement types: module definitions, node definitions, full connections, labeled dangling-from stubs, and labeled dangling-to stubs.
 
 ---
 
@@ -16,7 +16,7 @@ A Monotrail document is a sequence of newline-separated statements. Blank lines 
 
 ### Requirement: Module Definition
 
-A Monotrail document SHALL support module definitions that declare reusable port templates. Each module MUST have a unique name and an optional list of typed ports. Modules are referenced by node definitions.
+A patch diagram document SHALL support module definitions that declare reusable port templates. Each module MUST have a unique name and an optional list of typed ports. Modules are referenced by node definitions.
 
 **Syntax:** `module <Name> { <portList> }`
 
@@ -58,7 +58,7 @@ The port list may be empty.
 
 ### Requirement: Node Definition
 
-A Monotrail document SHALL support node definitions that instantiate a module and assign it a unique local identifier. A node MAY include an optional display label in bracket-quote syntax.
+A patch diagram document SHALL support node definitions that instantiate a module and assign it a unique local identifier. A node MAY include an optional display label in bracket-quote syntax.
 
 **Syntax:** `<ModuleName> <nodeName>` or `<ModuleName> <nodeName>["<label>"]`
 
@@ -78,7 +78,7 @@ A Monotrail document SHALL support node definitions that instantiate a module an
 
 ### Requirement: Full Connection
 
-A Monotrail document SHALL support full connections that route a wire from one node's port to another node's port. Ports MUST be referenced by the node identifier and port label separated by `:`. A connection MAY include an optional inline label using Mermaid pipe syntax.
+A patch diagram document SHALL support full connections that route a wire from one node's port to another node's port. Ports MUST be referenced by the node identifier and port label separated by `:`. A connection MAY include an optional inline label using Mermaid pipe syntax.
 
 **Syntax (unlabeled):** `<from>:<fromPort> --> <to>:<toPort>`
 
@@ -98,7 +98,7 @@ Port specifiers are required.
 
 ### Requirement: Dangling-From Stub
 
-A Monotrail document SHALL support dangling-from stubs representing a wire originating from a source port with no declared destination. The renderer MUST draw a short stub arrow extending from the source port badge with the label at the open end.
+A patch diagram document SHALL support dangling-from stubs representing a wire originating from a source port with no declared destination. The renderer MUST draw a short stub arrow extending from the source port badge with the label at the open end.
 
 **Syntax:** `<from>:<fromPort> -->|<label>|`
 
@@ -114,7 +114,7 @@ A Monotrail document SHALL support dangling-from stubs representing a wire origi
 
 ### Requirement: Dangling-To Stub
 
-A Monotrail document SHALL support dangling-to stubs representing a wire arriving at a destination port with no declared source. The renderer MUST draw a short stub arrow pointing toward the destination port badge with the label at the open end.
+A patch diagram document SHALL support dangling-to stubs representing a wire arriving at a destination port with no declared source. The renderer MUST draw a short stub arrow pointing toward the destination port badge with the label at the open end.
 
 **Syntax:** `-->|<label>| <to>:<toPort>`
 
@@ -191,7 +191,7 @@ The renderer SHALL only produce a visual port badge for a port that is reference
 ### Scenario: Simple two-node patch
 
 ```
-monotrail
+patch diagram
 module Oscillator {
     +voct V/oct
     +audio Out
@@ -212,7 +212,7 @@ vca1:Out -->|Out|
 ### Scenario: Diagram with dangling-to, labeled connections, and multiple modules
 
 ```
-monotrail
+patch diagram
 module Sequencer {
     +gate sync
     +voct pitch

@@ -30,9 +30,9 @@ The renderer SHALL read `themeVariables.fontFamily` from the Mermaid config and 
 - **WHEN** no `themeVariables.fontFamily` is set
 - **THEN** all text elements SHALL use `font-family: 'Arial, sans-serif'`
 
-#### Scenario: Explicit monotrail.fontFamily overrides themeVariables.fontFamily
+#### Scenario: Explicit patch.fontFamily overrides themeVariables.fontFamily
 
-- **WHEN** `mermaid.initialize({ themeVariables: { fontFamily: 'monospace' }, monotrail: { fontFamily: 'serif' } })` is called
+- **WHEN** `mermaid.initialize({ themeVariables: { fontFamily: 'monospace' }, patch: { fontFamily: 'serif' } })` is called
 - **THEN** all text elements SHALL use `font-family: 'serif'`
 
 ---
@@ -66,7 +66,7 @@ The default base `fontSize` SHALL be `18` (matching the current hardcoded values
 - **WHEN** no `themeVariables.fontSize` is set
 - **THEN** node name font-size SHALL be `18`, port badge font-size SHALL be `15`, edge label font-size SHALL be `13`
 
-#### Scenario: Explicit monotrail.fontSize overrides themeVariables.fontSize
+#### Scenario: Explicit patch.fontSize overrides themeVariables.fontSize
 
-- **WHEN** `mermaid.initialize({ themeVariables: { fontSize: '16px' }, monotrail: { fontSize: 22 } })` is called
+- **WHEN** `mermaid.initialize({ themeVariables: { fontSize: '16px' }, patch: { fontSize: 22 } })` is called
 - **THEN** node name font-size SHALL be `22`

@@ -1,19 +1,30 @@
-# Spec: patchDiagram Schema
+# Spec: patch diagram Schema
 
 ## Purpose
 
-Defines the text syntax (schema) for patchDiagram — a domain-specific diagram language that extends Mermaid conventions to describe modular signal-flow graphs, such as synthesizer patch bays. A diagram describes modules (reusable port templates), node instances of those modules, and the connections (wires) between ports.
+Defines the text syntax (schema) for patch diagram — a domain-specific diagram language that extends Mermaid conventions to describe modular signal-flow graphs, such as synthesizer patch bays. A diagram describes modules (reusable port templates), node instances of those modules, and the connections (wires) between ports.
 
 ## Statement Types
 
-A patchDiagram document is a sequence of newline-separated statements. Blank lines and leading/trailing whitespace are ignored. There are five statement types: module definitions, node definitions, full connections, labeled dangling-from stubs, and labeled dangling-to stubs.
+A patch diagram document is a sequence of newline-separated statements. Blank lines and leading/trailing whitespace are ignored. There are five statement types: module definitions, node definitions, full connections, labeled dangling-from stubs, and labeled dangling-to stubs.
 
 ---
 
 ## Requirements
+
+### Requirement: Diagram block start keyword
+
+A patch diagram document SHALL begin with the keyword `patch` as the first non-whitespace token on the first line. The parser SHALL reject any document whose first token is not `patch`.
+
+#### Scenario: Valid diagram block starts with `patch`
+- **WHEN** the diagram text begins with `patch` (optionally preceded by whitespace)
+- **THEN** the parser SHALL accept the document and parse the subsequent statements
+
+---
+
 ### Requirement: Module Definition
 
-A patchDiagram document SHALL support module definitions that declare reusable port templates. Each module MUST have a unique name and an optional list of typed ports. Modules are referenced by node definitions.
+A patch diagram document SHALL support module definitions that declare reusable port templates. Each module MUST have a unique name and an optional list of typed ports. Modules are referenced by node definitions.
 
 **Syntax:** `module <Name> { <portList> }`
 
@@ -55,7 +66,7 @@ The port list may be empty.
 
 ### Requirement: Node Definition
 
-A patchDiagram document SHALL support node definitions that instantiate a module and assign it a unique local identifier. A node MAY include an optional display label in bracket-quote syntax.
+A patch diagram document SHALL support node definitions that instantiate a module and assign it a unique local identifier. A node MAY include an optional display label in bracket-quote syntax.
 
 **Syntax:** `<ModuleName> <nodeName>` or `<ModuleName> <nodeName>["<label>"]`
 
@@ -75,7 +86,7 @@ A patchDiagram document SHALL support node definitions that instantiate a module
 
 ### Requirement: Full Connection
 
-A patchDiagram document SHALL support full connections that route a wire from one node's port to another node's port. Ports MUST be referenced by the node identifier and port label separated by `:`. A connection MAY include an optional inline label using Mermaid pipe syntax.
+A patch diagram document SHALL support full connections that route a wire from one node's port to another node's port. Ports MUST be referenced by the node identifier and port label separated by `:`. A connection MAY include an optional inline label using Mermaid pipe syntax.
 
 **Syntax (unlabeled):** `<from>:<fromPort> --> <to>:<toPort>`
 
@@ -95,7 +106,7 @@ Port specifiers are required.
 
 ### Requirement: Dangling-From Stub
 
-A patchDiagram document SHALL support dangling-from stubs representing a wire originating from a source port with no declared destination. The renderer MUST draw a short stub arrow extending from the source port badge with the label at the open end.
+A patch diagram document SHALL support dangling-from stubs representing a wire originating from a source port with no declared destination. The renderer MUST draw a short stub arrow extending from the source port badge with the label at the open end.
 
 **Syntax:** `<from>:<fromPort> -->|<label>|`
 
@@ -111,7 +122,7 @@ A patchDiagram document SHALL support dangling-from stubs representing a wire or
 
 ### Requirement: Dangling-To Stub
 
-A patchDiagram document SHALL support dangling-to stubs representing a wire arriving at a destination port with no declared source. The renderer MUST draw a short stub arrow pointing toward the destination port badge with the label at the open end.
+A patch diagram document SHALL support dangling-to stubs representing a wire arriving at a destination port with no declared source. The renderer MUST draw a short stub arrow pointing toward the destination port badge with the label at the open end.
 
 **Syntax:** `-->|<label>| <to>:<toPort>`
 

@@ -30,7 +30,7 @@ export interface Connection {
   direction?: 'from' | 'to';
 }
 
-export interface MonotrailAST {
+export interface PatchAST {
   modules: ModuleDef[];
   nodes: NodeDef[];
   connections: Connection[];
