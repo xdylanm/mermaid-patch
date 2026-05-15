@@ -1,10 +1,4 @@
-# Spec: Neutral Theme
-
-## Purpose
-
-Defines the built-in neutral palette that is applied automatically when Mermaid's `theme` option is set to `'neutral'`. Covers grayscale signal colours, neutral node chrome, and a light-grey canvas background.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Neutral theme palette is applied when Mermaid theme is neutral
 
@@ -34,6 +28,8 @@ When the Mermaid `theme` option is set to `'neutral'`, the renderer SHALL apply 
 
 - **WHEN** `mermaid.initialize({ theme: 'default' })` is called
 - **THEN** the renderer SHALL use the original default palette with no changes
+
+## ADDED Requirements
 
 ### Requirement: Neutral theme port tabs use simplified single-band rendering
 

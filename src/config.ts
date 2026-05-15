@@ -34,18 +34,21 @@ export interface PatchConfig {
   fontFamily: string;
   fontSize: number;
 
+  // ── Internal: rendering mode flags (palette-driven, not user-settable via patch.*) ─────
+  simplifiedTabs: boolean;  // when true, port tabs use node chrome colours instead of signal-type HSL
+
   // ── User-settable: layout options ─────────────────────────────────────────────────────────
   portPlacement: 'elk-optimized' | 'declaration';
   nodePlacementStrategy: 'brandes-koepf' | 'network-simplex' | 'simple';
 }
 
 export const DEFAULT_CONFIG: PatchConfig = {
-  audioColor: '#F07BAB',
-  cvColor: '#51A4DB',
-  voctColor: '#8BC640',
-  gateColor: '#F9AF3C',
-  anyColor: '#888888',
-  defaultColor: '#888888',
+  audioColor: 'hsl(25, 100%, 40%)',
+  cvColor: 'hsl(200, 100%, 40%)',
+  voctColor: 'hsl(100, 100%, 40%)',
+  gateColor: 'hsl(300, 100%, 40%)',
+  anyColor: 'hsl(0, 0%, 40%)',
+  defaultColor: 'hsl(0, 0%, 40%)',
 
   nodeBgColor: '#cccccc',
   nodeBandLight: '#999999',
@@ -54,10 +57,12 @@ export const DEFAULT_CONFIG: PatchConfig = {
   nodeNameColor: '#111111',
   nodeLabelColor: '#333333',
 
-  background: '#f0ede8',
+  background: 'hsl(50, 100%, 95%)',
 
   fontFamily: 'Arial, sans-serif',
   fontSize: 18,
+
+  simplifiedTabs: false,
 
   portPlacement: 'elk-optimized',
   nodePlacementStrategy: 'brandes-koepf',
@@ -75,24 +80,26 @@ export const DARK_CONFIG: PatchConfig = {
   background: '#1e1e2e',
 };
 
-/** Built-in neutral palette — grayscale signal colours, light chrome. */
+/** Built-in neutral palette — print-ready: dark outer band only, light grey backgrounds, white canvas. */
 export const NEUTRAL_CONFIG: PatchConfig = {
   ...DEFAULT_CONFIG,
-  audioColor: '#a0a0a0',
-  cvColor: '#888888',
-  voctColor: '#b0b0b0',
-  gateColor: '#c8c8c8',
-  anyColor: '#888888',
-  defaultColor: '#888888',
+  audioColor: 'hsl(0,0%,20%)',
+  cvColor: 'hsl(0,0%,20%)',
+  voctColor: 'hsl(0,0%,20%)',
+  gateColor: 'hsl(0,0%,20%)',
+  anyColor: 'hsl(0,0%,20%)',
+  defaultColor: 'hsl(0,0%,20%)',
 
-  nodeBgColor: '#e8e8e8',
-  nodeBandLight: '#c0c0c0',
-  nodeBandMid: '#a0a0a0',
-  nodeBandDark: '#808080',
+  nodeBgColor: 'hsl(0,0%,95%)',
+  nodeBandLight: 'hsl(0,0%,95%)',
+  nodeBandMid: 'hsl(0,0%,95%)',
+  nodeBandDark: 'hsl(0,0%,20%)',
   nodeNameColor: '#222222',
   nodeLabelColor: '#444444',
 
-  background: '#f5f5f5',
+  background: '#ffffff',
+
+  simplifiedTabs: true,
 };
 
 /** Signal type → color key in PatchConfig */

@@ -110,7 +110,9 @@ function renderPortTab(
 ): Element {
   const N = 3;
   const rStep = (CORNER_R_OUTER - CORNER_R_INNER) / N;
-  const colors = tabColors(signalType);
+  const colors = config.simplifiedTabs
+    ? { bg: config.nodeBgColor, light: config.nodeBgColor, mid: config.nodeBgColor, dark: config.nodeBandDark }
+    : tabColors(signalType);
   const bandFills = [colors.dark, colors.mid, colors.light];
 
   const g = svgEl('g', {});
@@ -172,13 +174,18 @@ function renderPortTab(
 
 // ── Arrow markers ─────────────────────────────────────────────────────────────
 
+/** Sanitize a colour string to a valid SVG id fragment (works for hex and HSL). */
+function colorId(color: string): string {
+  return color.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
 function addArrowMarkers(svgElement: Element, colors: string[]): void {
   const defs = svgEl('defs', {});
   const seen = new Set<string>();
   for (const color of colors) {
     if (seen.has(color)) continue;
     seen.add(color);
-    const id = 'arr-' + color.replace('#', '');
+    const id = 'arr-' + colorId(color);
     const marker = svgEl('marker', {
       id, markerWidth: '7', markerHeight: '5',
       refX: '6', refY: '2.5', orient: 'auto',
@@ -308,7 +315,7 @@ function renderDangling(
   const [dx, dy] = SIDE_DIR[srcSide];
   const end = { x: src.x + dx * DANGLING_LEN, y: src.y + dy * DANGLING_LEN };
 
-  const markerId = 'arr-' + color.replace('#', '');
+  const markerId = 'arr-' + colorId(color);
   const g = svgEl('g', {});
   g.appendChild(svgEl('line', {
     x1: src.x, y1: src.y, x2: end.x, y2: end.y,
@@ -350,7 +357,7 @@ function renderDanglingTo(
   const [dx, dy] = SIDE_DIR[destSide];
   const start = { x: dst.x + dx * STUB, y: dst.y + dy * STUB };
 
-  const markerId = 'arr-' + color.replace('#', '');
+  const markerId = 'arr-' + colorId(color);
   const g = svgEl('g', {});
   g.appendChild(svgEl('line', {
     x1: start.x, y1: start.y, x2: dst.x, y2: dst.y,
@@ -370,6 +377,43 @@ function renderDanglingTo(
 }
 
 // ── ELK edge rendering ────────────────────────────────────────────────────────
+
+const CONNECTOR_CORNER_R = 16;
+
+/**
+ * Builds an SVG path string for a polyline with rounded corners.
+ * Interior bend points are smoothed with a quadratic Bézier arc whose radius is
+ * clamped to half the length of the shorter adjacent segment, so arcs never
+ * overshoot a segment.
+ */
+function buildRoundedPath(pts: Array<{ x: number; y: number }>): string {
+  if (pts.length < 2) return '';
+  if (pts.length === 2) {
+    return `M ${Math.round(pts[0].x)} ${Math.round(pts[0].y)} L ${Math.round(pts[1].x)} ${Math.round(pts[1].y)}`;
+  }
+  const parts: string[] = [`M ${Math.round(pts[0].x)} ${Math.round(pts[0].y)}`];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const prev = pts[i - 1], curr = pts[i], next = pts[i + 1];
+    const abx = curr.x - prev.x, aby = curr.y - prev.y;
+    const bcx = next.x - curr.x, bcy = next.y - curr.y;
+    const lenAB = Math.sqrt(abx * abx + aby * aby);
+    const lenBC = Math.sqrt(bcx * bcx + bcy * bcy);
+    if (lenAB < 0.5 || lenBC < 0.5) {
+      parts.push(`L ${Math.round(curr.x)} ${Math.round(curr.y)}`);
+      continue;
+    }
+    const r = Math.min(CONNECTOR_CORNER_R, lenAB / 2, lenBC / 2);
+    const p1x = curr.x - (abx / lenAB) * r;
+    const p1y = curr.y - (aby / lenAB) * r;
+    const p2x = curr.x + (bcx / lenBC) * r;
+    const p2y = curr.y + (bcy / lenBC) * r;
+    parts.push(`L ${Math.round(p1x)} ${Math.round(p1y)}`);
+    parts.push(`Q ${Math.round(curr.x)} ${Math.round(curr.y)} ${Math.round(p2x)} ${Math.round(p2y)}`);
+  }
+  const last = pts[pts.length - 1];
+  parts.push(`L ${Math.round(last.x)} ${Math.round(last.y)}`);
+  return parts.join(' ');
+}
 
 function renderElkEdge(
   section: { startPoint: { x: number; y: number }; endPoint: { x: number; y: number }; bendPoints?: Array<{ x: number; y: number }> },
@@ -396,8 +440,8 @@ function renderElkEdge(
       Math.abs(p.y - raw[i - 1].y) > 0.5
   );
 
-  const d = 'M ' + pts.map((p) => `${Math.round(p.x)} ${Math.round(p.y)}`).join(' L ');
-  const markerId = 'arr-' + color.replace('#', '');
+  const d = buildRoundedPath(pts);
+  const markerId = 'arr-' + color.replace(/[^a-zA-Z0-9]/g, '_');
   const els: Element[] = [];
   els.push(svgEl('path', {
     d, fill: 'none', stroke: color, 'stroke-width': 2,

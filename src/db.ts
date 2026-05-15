@@ -35,23 +35,35 @@ function resolvedConfig(): PatchConfig {
     DEFAULT_CONFIG;
 
   // 2. Build an override from supported themeVariables.
-  // Node chrome variables (primaryColor etc.) are only applied for non-default themes,
-  // because Mermaid auto-populates themeVariables even when theme: 'default', which
-  // would stomp the intentional patch diagram default palette.
+  // background and node chrome variables are only applied for non-default themes,
+  // because Mermaid auto-populates themeVariables (including background) even when
+  // theme: 'default', which would stomp the intentional patch diagram default palette.
   const tv = (mermaidConf.themeVariables ?? {}) as Record<string, unknown>;
   const themeVarOverride: Partial<PatchConfig> = {};
   const col = (k: keyof PatchConfig, v: string | undefined) => { if (v) (themeVarOverride as Record<string, unknown>)[k] = v; };
-  col('background', parseThemeColor(tv['background']));
   col('fontFamily', parseThemeColor(tv['fontFamily']));
   const fs = parseThemeSize(tv['fontSize']);
   if (fs !== undefined) themeVarOverride.fontSize = fs;
-  // Node chrome overrides only when an explicit non-default theme is active.
+  // background and node chrome overrides only when an explicit non-default theme is active.
   const isNonDefaultTheme = mermaidConf.theme === 'dark' || mermaidConf.theme === 'neutral';
   if (isNonDefaultTheme) {
-    col('nodeBgColor',    parseThemeColor(tv['primaryColor']));
-    col('nodeNameColor',  parseThemeColor(tv['primaryTextColor']));
-    col('nodeBandDark',   parseThemeColor(tv['primaryBorderColor']));
+    col('background',    parseThemeColor(tv['background']));
+    col('nodeNameColor', parseThemeColor(tv['primaryTextColor']));
     col('nodeLabelColor', parseThemeColor(tv['secondaryTextColor']));
+    const bgOverride = parseThemeColor(tv['primaryColor']);
+    col('nodeBgColor', bgOverride);
+    if (palette.simplifiedTabs) {
+      // In simplified-tab mode (neutral theme) keep inner bands in sync with the background
+      // override so all three layers stay the same colour. Also suppress primaryBorderColor
+      // → nodeBandDark because Mermaid's built-in neutral themeVariables set that to a light
+      // grey, which would clobber the intentional dark outer band.
+      if (bgOverride) {
+        col('nodeBandLight', bgOverride);
+        col('nodeBandMid',   bgOverride);
+      }
+    } else {
+      col('nodeBandDark', parseThemeColor(tv['primaryBorderColor']));
+    }
   }
 
   // 3. User's patch key — only accept the non-color keys.
