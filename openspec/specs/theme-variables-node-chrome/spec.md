@@ -2,80 +2,91 @@
 
 ## Purpose
 
-Defines how the standard Mermaid `themeVariables` keys (`primaryColor`, `primaryTextColor`, `primaryBorderColor`, `secondaryColor`, `secondaryTextColor`) are consumed to style node header and body colours, following the same three-tier precedence model as other theme variables.
+Defines how the standard Mermaid `themeVariables` keys (`primaryColor`, `primaryTextColor`, `primaryBorderColor`, `secondaryTextColor`) are consumed to style node chrome colours (background, bands, and text), following the same three-tier precedence model as other theme variables.
 
 ## Requirements
 
-### Requirement: Mermaid primaryColor theme variable sets the node header background
+### Requirement: Mermaid primaryColor theme variable sets the node background colour
 
-The renderer SHALL read `themeVariables.primaryColor` from the Mermaid config and use it as the node header (upper half) background colour. This SHALL take precedence over the built-in palette default but be overridden by an explicit `patch.nodeHeaderFill` user key. Each theme palette SHALL define an appropriate default.
+The renderer SHALL read `themeVariables.primaryColor` from the Mermaid config and use it as the node background fill (`nodeBgColor`, the L=80 background visible in the centre of the box). This SHALL take precedence over the built-in palette default but be overridden by an explicit `patch.nodeBgColor` user key.
 
-#### Scenario: primaryColor sets node header background
+#### Scenario: primaryColor sets node background fill
 
-- **WHEN** `mermaid.initialize({ themeVariables: { primaryColor: '#ff0000' } })` is called
-- **THEN** the node header rectangle fill SHALL be `#ff0000`
+- **WHEN** `mermaid.initialize({ themeVariables: { primaryColor: '#d4d4d4' } })` is called
+- **THEN** the node background rectangle fill SHALL be `#d4d4d4`
 
-#### Scenario: patch.nodeHeaderFill overrides primaryColor
+#### Scenario: patch.nodeBgColor overrides primaryColor
 
-- **WHEN** `mermaid.initialize({ themeVariables: { primaryColor: '#ff0000' }, patch: { nodeHeaderFill: '#00ff00' } })` is called
-- **THEN** the node header fill SHALL be `#00ff00`
+- **WHEN** `mermaid.initialize({ themeVariables: { primaryColor: '#d4d4d4' }, patch: { nodeBgColor: '#e8e8e8' } })` is called
+- **THEN** the node background fill SHALL be `#e8e8e8`
 
 ---
 
-### Requirement: Mermaid primaryTextColor theme variable sets the node header text colour
+### Requirement: Mermaid primaryTextColor theme variable sets the node name text colour
 
-The renderer SHALL read `themeVariables.primaryTextColor` from the Mermaid config and use it as the colour of the node name text in the header. This SHALL take precedence over the palette default but be overridden by `patch.nodeHeaderText`.
+The renderer SHALL read `themeVariables.primaryTextColor` from the Mermaid config and use it as the colour of the node name text. This SHALL take precedence over the palette default but be overridden by `patch.nodeNameColor`.
 
 #### Scenario: primaryTextColor sets node name text colour
 
 - **WHEN** `mermaid.initialize({ themeVariables: { primaryTextColor: '#ffff00' } })` is called
 - **THEN** the node name text fill SHALL be `#ffff00`
 
----
+#### Scenario: patch.nodeNameColor overrides primaryTextColor
 
-### Requirement: Mermaid primaryBorderColor theme variable sets the node border colour
-
-The renderer SHALL read `themeVariables.primaryBorderColor` from the Mermaid config and use it as the stroke colour for node block borders. This SHALL take precedence over the palette default but be overridden by `patch.nodeBorderColor`.
-
-#### Scenario: primaryBorderColor sets node border stroke
-
-- **WHEN** `mermaid.initialize({ themeVariables: { primaryBorderColor: '#aabbcc' } })` is called
-- **THEN** all node rectangle strokes SHALL be `#aabbcc`
+- **WHEN** `mermaid.initialize({ themeVariables: { primaryTextColor: '#ffff00' }, patch: { nodeNameColor: '#ffffff' } })` is called
+- **THEN** the node name text fill SHALL be `#ffffff`
 
 ---
 
-### Requirement: Mermaid secondaryColor theme variable sets the node body background
+### Requirement: Mermaid primaryBorderColor theme variable sets the outermost band colour
 
-The renderer SHALL read `themeVariables.secondaryColor` from the Mermaid config and use it as the node body (lower half) background colour. This SHALL take precedence over the palette default but be overridden by `patch.nodeBodyFill`.
+The renderer SHALL read `themeVariables.primaryBorderColor` from the Mermaid config and use it as the `nodeBandDark` value (the outermost, darkest band pair). This SHALL take precedence over the palette default but be overridden by `patch.nodeBandDark`.
 
-#### Scenario: secondaryColor sets node body fill
+#### Scenario: primaryBorderColor sets outermost band fill
 
-- **WHEN** `mermaid.initialize({ themeVariables: { secondaryColor: '#eeeeee' } })` is called
-- **THEN** the node body rectangle fill SHALL be `#eeeeee`
+- **WHEN** `mermaid.initialize({ themeVariables: { primaryBorderColor: '#1a1a1a' } })` is called
+- **THEN** the outermost band pair (r-path and l-path) fill SHALL be `#1a1a1a`
+
+#### Scenario: patch.nodeBandDark overrides primaryBorderColor
+
+- **WHEN** `mermaid.initialize({ themeVariables: { primaryBorderColor: '#1a1a1a' }, patch: { nodeBandDark: '#0a0a0a' } })` is called
+- **THEN** the outermost band fill SHALL be `#0a0a0a`
 
 ---
 
 ### Requirement: Mermaid secondaryTextColor theme variable sets the node label text colour
 
-The renderer SHALL read `themeVariables.secondaryTextColor` from the Mermaid config and use it as the text colour for the optional node label in the body. This SHALL take precedence over the palette default but be overridden by `patch.nodeBodyText`.
+The renderer SHALL read `themeVariables.secondaryTextColor` from the Mermaid config and use it as the colour of the optional node label text. This SHALL take precedence over the palette default but be overridden by `patch.nodeLabelColor`.
 
 #### Scenario: secondaryTextColor sets node label text colour
 
 - **WHEN** `mermaid.initialize({ themeVariables: { secondaryTextColor: '#444444' } })` is called
 - **THEN** the node label text fill SHALL be `#444444`
 
+#### Scenario: patch.nodeLabelColor overrides secondaryTextColor
+
+- **WHEN** `mermaid.initialize({ themeVariables: { secondaryTextColor: '#444444' }, patch: { nodeLabelColor: '#222222' } })` is called
+- **THEN** the node label text fill SHALL be `#222222`
+
 ---
 
 ### Requirement: Theme variable precedence for node chrome colours
 
-All node chrome theme variables (`primaryColor`, `primaryTextColor`, `primaryBorderColor`, `secondaryColor`, `secondaryTextColor`) SHALL follow the same precedence order as `background`: palette default → themeVariable → explicit `patch.*` user key. Port badge fill colours and signal wire colours are NOT affected by these theme variables.
+All node chrome theme variables (`primaryColor`, `primaryTextColor`, `primaryBorderColor`, `secondaryTextColor`) SHALL follow the same precedence order: palette default → themeVariable → explicit `patch.*` user key.
+
+- `primaryColor` → `nodeBgColor`
+- `primaryTextColor` → `nodeNameColor`
+- `primaryBorderColor` → `nodeBandDark`
+- `secondaryTextColor` → `nodeLabelColor`
+
+Port badge fill colours and signal wire colours are NOT affected by these theme variables.
 
 #### Scenario: themeVariables chrome wins over palette, loses to patch diagram key
 
-- **WHEN** `mermaid.initialize({ theme: 'dark', themeVariables: { primaryColor: '#334455' }, patch: { nodeHeaderFill: '#aabbcc' } })` is called
-- **THEN** node header fill SHALL be `#aabbcc` (patch diagram key wins)
+- **WHEN** `mermaid.initialize({ theme: 'dark', themeVariables: { primaryColor: '#334455' }, patch: { nodeBgColor: '#aabbcc' } })` is called
+- **THEN** node background fill SHALL be `#aabbcc` (patch diagram key wins)
 
 #### Scenario: Port badge and signal colours are unaffected
 
-- **WHEN** any combination of primaryColor, secondaryColor, or primaryBorderColor is set
+- **WHEN** any combination of `primaryColor`, `primaryBorderColor`, or `secondaryTextColor` is set
 - **THEN** port badge polygon fills and wire stroke colours SHALL be determined solely by signal type and the `patch.*Color` keys, unchanged

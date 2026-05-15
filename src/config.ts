@@ -8,8 +8,9 @@
  *
  * Signal colours and node chrome colours are derived from the built-in theme palette
  * (DEFAULT_CONFIG / DARK_CONFIG / NEUTRAL_CONFIG) and can be further adjusted via standard
- * Mermaid themeVariables (primaryColor → nodeHeaderFill, etc.).  They are not settable
- * through the `patch.*` user config.
+ * Mermaid themeVariables (primaryColor → nodeBgColor, primaryBorderColor → nodeBandDark,
+ * primaryTextColor → nodeNameColor, secondaryTextColor → nodeLabelColor).  They are not
+ * settable through the `patch.*` user config.
  */
 export interface PatchConfig {
   // ── Internal: signal type colors (palette-driven, not user-settable via patch.*) ─────
@@ -21,11 +22,12 @@ export interface PatchConfig {
   defaultColor: string;
 
   // ── Internal: node chrome (palette + themeVariables, not user-settable via patch.*) ──
-  nodeHeaderFill: string;
-  nodeHeaderText: string;
-  nodeBodyFill: string;
-  nodeBodyText: string;
-  nodeBorderColor: string;
+  nodeBgColor: string;      // background fill (L=80 equivalent)
+  nodeBandLight: string;    // innermost band (L=60 equivalent)
+  nodeBandMid: string;      // middle band    (L=40 equivalent)
+  nodeBandDark: string;     // outermost band (L=20 equivalent)
+  nodeNameColor: string;    // module name text
+  nodeLabelColor: string;   // optional label text
 
   // ── User-settable via patch.* or themeVariables ──────────────────────────────────────
   background: string;
@@ -45,11 +47,12 @@ export const DEFAULT_CONFIG: PatchConfig = {
   anyColor: '#888888',
   defaultColor: '#888888',
 
-  nodeHeaderFill: '#ffffff',
-  nodeHeaderText: '#111111',
-  nodeBodyFill: '#404040',
-  nodeBodyText: '#bbbbbb',
-  nodeBorderColor: '#1a1a1a',
+  nodeBgColor: '#cccccc',
+  nodeBandLight: '#999999',
+  nodeBandMid: '#666666',
+  nodeBandDark: '#333333',
+  nodeNameColor: '#111111',
+  nodeLabelColor: '#333333',
 
   background: '#f0ede8',
 
@@ -63,11 +66,12 @@ export const DEFAULT_CONFIG: PatchConfig = {
 /** Built-in dark palette. Signal colours are identical to DEFAULT_CONFIG. */
 export const DARK_CONFIG: PatchConfig = {
   ...DEFAULT_CONFIG,
-  nodeHeaderFill: '#2a2a2a',
-  nodeHeaderText: '#eeeeee',
-  nodeBodyFill: '#e8e8e8',
-  nodeBodyText: '#111111',
-  nodeBorderColor: '#555555',
+  nodeBgColor: '#2a2a2a',
+  nodeBandLight: '#3c3c3c',
+  nodeBandMid: '#555555',
+  nodeBandDark: '#6e6e6e',
+  nodeNameColor: '#eeeeee',
+  nodeLabelColor: '#cccccc',
   background: '#1e1e2e',
 };
 
@@ -81,11 +85,12 @@ export const NEUTRAL_CONFIG: PatchConfig = {
   anyColor: '#888888',
   defaultColor: '#888888',
 
-  nodeHeaderFill: '#f0f0f0',
-  nodeHeaderText: '#222222',
-  nodeBodyFill: '#d0d0d0',
-  nodeBodyText: '#333333',
-  nodeBorderColor: '#999999',
+  nodeBgColor: '#e8e8e8',
+  nodeBandLight: '#c0c0c0',
+  nodeBandMid: '#a0a0a0',
+  nodeBandDark: '#808080',
+  nodeNameColor: '#222222',
+  nodeLabelColor: '#444444',
 
   background: '#f5f5f5',
 };

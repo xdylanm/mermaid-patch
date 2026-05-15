@@ -21,10 +21,16 @@ import { DEFAULT_CONFIG } from './config.js';
 import { parsePatch } from './parser.js';
 
 // ── Layout constants ──────────────────────────────────────────────────────────
-export const BOX_W = 140;
-export const BOX_TOP_H = 42;
-export const BOX_BOT_H = 42;
-export const BOX_H = BOX_TOP_H + BOX_BOT_H;
+export const BOX_W = 144;
+export const BOX_H = 81;
+// Band thickness per step: ~5% of width horizontally, ~2% of height vertically (min 1 px).
+// Adjust these two values to tune the visual weight of the banded frame.
+export const BAND_STEP_H = Math.round(BOX_W * 0.05); // ≈ 7 px per band (horizontal)
+export const BAND_STEP_V = Math.max(1, Math.round(BOX_H * 0.02)); // ≈ 2 px per band (vertical)
+// Corner radius at the outermost band (dark) and innermost layer (background).
+// Intermediate layers interpolate linearly between these two values.
+export const CORNER_R_OUTER = 16; // outermost band corner radius (px)
+export const CORNER_R_INNER = 4;  // background layer corner radius (px)
 export const BADGE_D = 24;
 export const BADGE_SLOPE = 75;
 export const LAYER_GAP = 25;
@@ -40,6 +46,35 @@ export const SIDE_DIR: Record<Side, [number, number]> = {
   top: [0, -1],
   bottom: [0, 1],
 };
+
+// ── Node box SVG geometry ─────────────────────────────────────────────────────
+
+/**
+ * Returns SVG path data for a rectangle with:
+ *   top-right corner   — quadratic bezier arc (radius r)
+ *   bottom-left corner — quadratic bezier arc (radius r)
+ *   top-left, bottom-right — sharp right angles
+ * Winding is clockwise so the interior fills with the default fill-rule.
+ *
+ * Used by the renderer to build each banded-frame layer for the node box.
+ * The corner radius `r` should decrease with each inner layer so that nested
+ * arcs create a smooth graduated transition at the rounded corners.
+ */
+export function mixedCornerRect(x: number, y: number, w: number, h: number, r: number): string {
+  const rc = Math.min(r, w / 2, h / 2);
+  if (rc <= 0) {
+    return `M ${x},${y} H ${x + w} V ${y + h} H ${x} Z`;
+  }
+  return (
+    `M ${x},${y}` +                                       // top-left (sharp)
+    ` H ${x + w - rc}` +                                  // → top edge
+    ` Q ${x + w},${y} ${x + w},${y + rc}` +              // top-right arc ↘
+    ` V ${y + h}` +                                       // ↓ right edge (sharp bottom-right)
+    ` H ${x + rc}` +                                      // ← bottom edge
+    ` Q ${x},${y + h} ${x},${y + h - rc}` +              // bottom-left arc ↑
+    ` Z`                                                   // ↑ left edge → top-left
+  );
+}
 
 // ── Geometry helpers ──────────────────────────────────────────────────────────
 

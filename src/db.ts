@@ -48,11 +48,10 @@ function resolvedConfig(): PatchConfig {
   // Node chrome overrides only when an explicit non-default theme is active.
   const isNonDefaultTheme = mermaidConf.theme === 'dark' || mermaidConf.theme === 'neutral';
   if (isNonDefaultTheme) {
-    col('nodeHeaderFill',  parseThemeColor(tv['primaryColor']));
-    col('nodeHeaderText',  parseThemeColor(tv['primaryTextColor']));
-    col('nodeBorderColor', parseThemeColor(tv['primaryBorderColor']));
-    col('nodeBodyFill',    parseThemeColor(tv['secondaryColor']));
-    col('nodeBodyText',    parseThemeColor(tv['secondaryTextColor']));
+    col('nodeBgColor',    parseThemeColor(tv['primaryColor']));
+    col('nodeNameColor',  parseThemeColor(tv['primaryTextColor']));
+    col('nodeBandDark',   parseThemeColor(tv['primaryBorderColor']));
+    col('nodeLabelColor', parseThemeColor(tv['secondaryTextColor']));
   }
 
   // 3. User's patch key — only accept the non-color keys.

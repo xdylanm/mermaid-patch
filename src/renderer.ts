@@ -14,10 +14,13 @@ import {
   validateConnections,
   portTipFn,
   badgeAnchorFn,
+  mixedCornerRect,
   BOX_W,
   BOX_H,
-  BOX_TOP_H,
-  BOX_BOT_H,
+  BAND_STEP_H,
+  BAND_STEP_V,
+  CORNER_R_OUTER,
+  CORNER_R_INNER,
   BADGE_D,
   BADGE_SLOPE,
   SVG_PAD,
@@ -154,35 +157,46 @@ function renderNodeBox(nl: NodeLayout, config: PatchConfig): Element {
   const { x, y, label, moduleType } = nl;
   const g = svgEl('g', {});
 
-  g.appendChild(svgEl('rect', {
-    x, y, width: BOX_W, height: BOX_TOP_H,
-    fill: config.nodeHeaderFill,
-    stroke: config.nodeBorderColor,
-    'stroke-width': 1.5,
-  }));
+  // Draw four layers from outermost (darkest) to innermost (background).
+  // Corner radius interpolates linearly from CORNER_R_OUTER to CORNER_R_INNER
+  // so nested arcs produce a smooth graduated corner at top-right and bottom-left.
+  const N = 3; // number of band steps
+  const rStep = (CORNER_R_OUTER - CORNER_R_INNER) / N; // per-inset radius decrement
+  const layers = [
+    { fill: config.nodeBandDark,  inset: 0 },
+    { fill: config.nodeBandMid,   inset: 1 },
+    { fill: config.nodeBandLight, inset: 2 },
+    { fill: config.nodeBgColor,   inset: 3 },
+  ];
+  for (const { fill, inset } of layers) {
+    const bx = x + inset * BAND_STEP_H;
+    const by = y + inset * BAND_STEP_V;
+    const bw = BOX_W - 2 * inset * BAND_STEP_H;
+    const bh = BOX_H - 2 * inset * BAND_STEP_V;
+    const r  = CORNER_R_OUTER - inset * rStep; // 20, 15, 10, 5
+    g.appendChild(svgEl('path', { d: mixedCornerRect(bx, by, bw, bh, r), fill }));
+  }
 
-  const nodeFontSize = String(config.fontSize);
+  // Text: node name (bold, all-caps) centred horizontally;
+  // shifts above centre when a label is present.
+  const hasLabel = label !== null;
+  const nameFontSize = String(config.fontSize);
+  const nameY = y + (hasLabel ? BOX_H * 0.42 : BOX_H / 2);
   g.appendChild(svgText(sanitize(safeStr(moduleType).toUpperCase()), {
-    x: x + BOX_W / 2, y: y + BOX_TOP_H / 2,
+    x: x + BOX_W / 2, y: nameY,
     'text-anchor': 'middle', 'dominant-baseline': 'middle',
-    fill: config.nodeHeaderText,
-    'font-size': nodeFontSize, 'font-family': config.fontFamily,
+    fill: config.nodeNameColor,
+    'font-size': nameFontSize, 'font-family': config.fontFamily,
     'font-weight': 'bold', 'letter-spacing': '0.06em',
   }));
 
-  g.appendChild(svgEl('rect', {
-    x, y: y + BOX_TOP_H, width: BOX_W, height: BOX_BOT_H,
-    fill: config.nodeBodyFill,
-    stroke: config.nodeBorderColor,
-    'stroke-width': 1.5,
-  }));
-
-  if (label !== null) {
+  if (hasLabel) {
+    const labelFontSize = String(Math.max(10, config.fontSize - 2));
     g.appendChild(svgText(sanitize(label), {
-      x: x + BOX_W / 2, y: y + BOX_TOP_H + BOX_BOT_H / 2,
+      x: x + BOX_W / 2, y: y + BOX_H * 0.62,
       'text-anchor': 'middle', 'dominant-baseline': 'middle',
-      fill: config.nodeBodyText,
-      'font-size': nodeFontSize, 'font-family': config.fontFamily,
+      fill: config.nodeLabelColor,
+      'font-size': labelFontSize, 'font-family': config.fontFamily,
     }));
   }
 

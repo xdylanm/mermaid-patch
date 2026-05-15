@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   sodipodi:docname="tab_example.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showguides="true"
+     inkscape:zoom="4.0668163"
+     inkscape:cx="398.346"
+     inkscape:cy="553.38128"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <sodipodi:guide
+       position="100,138.93897"
+       orientation="-1,0"
+       id="guide1"
+       inkscape:locked="false"
+       inkscape:label=""
+       inkscape:color="rgb(0,134,229)" />
+    <sodipodi:guide
+       position="95.73373,147"
+       orientation="0,1"
+       id="guide2"
+       inkscape:locked="false"
+       inkscape:label=""
+       inkscape:color="rgb(0,134,229)" />
+    <sodipodi:guide
+       position="130.00001,147"
+       orientation="1,0"
+       id="guide3"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="114.74427,157"
+       orientation="0,-1"
+       id="guide4"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <rect
+       x="263.72491"
+       y="324.33981"
+       width="281.38651"
+       height="47.95055"
+       id="rect1220-3-5-0" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#ffc499;fill-opacity:1;stroke:none;stroke-width:0.500001;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       id="bg80"
+       width="30.000006"
+       height="10.000001"
+       x="100"
+       y="140"
+       ry="6.480949e-07"
+       inkscape:label="bg80" />
+    <path
+       style="fill:#ff8833;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.6,150 v -8.39637 c 0,-0.84542 0.13291,-1.00363 0.65701,-1.00363 h 24.47076 c 1.29524,0 1.27224,0 1.27224,1.11616 V 150 H 125.5 v -8.11248 c 0,-0.65815 -0.28977,-0.9968 -1.01419,-0.9968 h -23.08157 c -0.434,0 -0.52339,0.24267 -0.52339,0.67249 L 100.91335,150 Z"
+       id="band60"
+       sodipodi:nodetypes="ccccccccccccc"
+       inkscape:label="band60" />
+    <path
+       style="fill:#cc5500;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.3,150 v -8.66434 c 0,-0.87241 0.14197,-1.03566 0.7018,-1.03566 h 26.13923 c 1.38354,0 1.35897,0 1.35897,1.15178 V 150 H 127 v -8.37139 C 127,140.94945 126.58819,140.6 125.81438,140.6 h -24.53073 c -0.46359,0 -0.68365,0.42552 -0.68365,0.86906 L 100.6347,150 Z"
+       id="band40"
+       sodipodi:nodetypes="ccccccccccccc"
+       inkscape:label="band40" />
+    <path
+       style="fill:#662b00;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100,150 v -8.71509 C 100,140.4125 100.68221,140 101.24204,140 h 27.00447 c 0.97732,0 1.7535,0.50796 1.7535,1.30061 L 130,150 h -1.5 v -8.67139 c 0,-0.67916 -0.4118,-1.02861 -1.18561,-1.02861 H 101.2831 c -0.55686,0 -0.9831,0.47717 -0.9831,1.03566 V 150 Z"
+       id="band20"
+       sodipodi:nodetypes="ccccccccccccc"
+       inkscape:label="band20" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,7.9977492,55.411236)"
+       id="text"
+       style="font-size:26.6667px;text-align:center;white-space:pre;shape-inside:url(#rect1220-3-5-0);display:inline;fill:#662b00;fill-opacity:1;stroke:none;stroke-width:1.88976;stroke-dasharray:none;stroke-opacity:1"
+       x="92.49601"
+       y="0"><tspan
+         x="367.91402"
+         y="348.66868"
+         id="tspan4"><tspan
+           style="-inkscape-font-specification:sans-serif"
+           id="tspan3">audio</tspan></tspan></text>
+  </g>
+</svg>
