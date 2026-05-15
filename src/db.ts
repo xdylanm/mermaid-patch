@@ -80,6 +80,11 @@ function resolvedConfig(): PatchConfig {
       userOverride.portPlacement = raw['portPlacement'];
     if (raw['nodePlacementStrategy'] === 'brandes-koepf' || raw['nodePlacementStrategy'] === 'network-simplex' || raw['nodePlacementStrategy'] === 'simple')
       userOverride.nodePlacementStrategy = raw['nodePlacementStrategy'];
+    if (typeof raw['legend'] === 'boolean')
+      userOverride.legend = raw['legend'];
+    if (raw['legendPosition'] === 'top-left' || raw['legendPosition'] === 'top-right' ||
+        raw['legendPosition'] === 'bottom-left' || raw['legendPosition'] === 'bottom-right')
+      userOverride.legendPosition = raw['legendPosition'];
   }
 
   return {

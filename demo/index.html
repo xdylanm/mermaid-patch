@@ -114,6 +114,18 @@
 
     .theme-toggle select:focus { outline: none; border-color: #61afef; }
 
+    .theme-toggle input[type="checkbox"] {
+      accent-color: #61afef;
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+
+    .theme-toggle select:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
     .render-pane {
       flex: 1;
       overflow: auto;
@@ -188,6 +200,16 @@ vca1:Out -->|Out|</textarea>
             <option value="neutral">neutral</option>
           </select>
         </label>
+        <label class="theme-toggle">
+          Legend
+          <input type="checkbox" id="legendCheck">
+          <select id="legendPosition" disabled>
+            <option value="top-right" selected>top-right</option>
+            <option value="top-left">top-left</option>
+            <option value="bottom-right">bottom-right</option>
+            <option value="bottom-left">bottom-left</option>
+          </select>
+        </label>
         <div id="status">Loading plugin…</div>
         <button id="renderBtn" disabled>Render</button>
       </div>
@@ -209,12 +231,14 @@ vca1:Out -->|Out|</textarea>
     // reach the dist/ folder at the repo root.
     import patch from '../dist/mermaid-patch.core.mjs';
 
-    const statusEl    = document.getElementById('status');
-    const renderBtn   = document.getElementById('renderBtn');
-    const inputEl     = document.getElementById('input');
-    const outputEl    = document.getElementById('output');
-    const errorEl     = document.getElementById('error');
-    const themeSelect = document.getElementById('themeSelect');
+    const statusEl         = document.getElementById('status');
+    const renderBtn        = document.getElementById('renderBtn');
+    const inputEl          = document.getElementById('input');
+    const outputEl         = document.getElementById('output');
+    const errorEl          = document.getElementById('error');
+    const themeSelect      = document.getElementById('themeSelect');
+    const legendCheck      = document.getElementById('legendCheck');
+    const legendPositionSel = document.getElementById('legendPosition');
 
     // Register the external diagram type, then initialise Mermaid.
     await mermaid.registerExternalDiagrams([patch]);
@@ -227,6 +251,10 @@ vca1:Out -->|Out|</textarea>
       mermaid.initialize({
         startOnLoad: false,
         theme: currentTheme(),
+        patch: {
+          legend: legendCheck.checked,
+          legendPosition: legendPositionSel.value,
+        },
       });
     }
 
@@ -260,6 +288,12 @@ vca1:Out -->|Out|</textarea>
 
     renderBtn.addEventListener('click', render);
     themeSelect.addEventListener('change', () => { initMermaid(); render(); });
+    legendCheck.addEventListener('change', () => {
+      legendPositionSel.disabled = !legendCheck.checked;
+      initMermaid();
+      render();
+    });
+    legendPositionSel.addEventListener('change', () => { initMermaid(); render(); });
     // Auto-render on load
     render();
   </script>

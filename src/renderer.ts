@@ -468,6 +468,62 @@ function renderElkEdge(
   return els;
 }
 
+// ── Legend ────────────────────────────────────────────────────────────────────
+
+const LEGEND_ENTRIES: Array<{ type: string; label: string }> = [
+  { type: 'audio', label: 'Audio' },
+  { type: 'cv',    label: 'CV' },
+  { type: 'voct',  label: 'V/oct' },
+  { type: 'gate',  label: 'Gate' },
+];
+const LEGEND_LINE_W = 32;
+const LEGEND_GAP = 10;
+
+/** Returns the computed legend entry data (colour + strokeWidth) for unit testing. */
+export function legendEntries(config: PatchConfig): Array<{ label: string; color: string; strokeWidth: number }> {
+  return LEGEND_ENTRIES.map(({ type, label }) => ({
+    label,
+    color: signalColor(type, config),
+    strokeWidth: 4,
+  }));
+}
+
+/** Pure function: compute the top-left translation for the legend group. Exported for unit testing. */
+export function computeLegendXY(
+  pos: PatchConfig['legendPosition'],
+  viewMinX: number, viewMinY: number, viewMaxX: number,
+  svgHeight: number, legendW: number, legendH: number, pad: number
+): { x: number; y: number } {
+  if (pos === 'top-left')     return { x: viewMinX + pad,          y: viewMinY + pad };
+  if (pos === 'bottom-left')  return { x: viewMinX + pad,          y: svgHeight - pad - legendH };
+  if (pos === 'bottom-right') return { x: viewMaxX - pad - legendW, y: svgHeight - pad - legendH };
+  // 'top-right' (default)
+  return { x: viewMaxX - pad - legendW, y: viewMinY + pad };
+}
+
+function renderLegend(x: number, y: number, config: PatchConfig): Element {
+  const rowH = config.fontSize * 1.6;
+  const midY = (i: number) => rowH * i + rowH / 2;
+
+  const g = svgEl('g', { class: 'patch-legend', transform: `translate(${x}, ${y})` });
+  for (let i = 0; i < LEGEND_ENTRIES.length; i++) {
+    const { type, label } = LEGEND_ENTRIES[i];
+    const color = signalColor(type, config);
+    g.appendChild(svgEl('line', {
+      x1: 0, y1: midY(i), x2: LEGEND_LINE_W, y2: midY(i),
+      stroke: color, 'stroke-width': 4, 'stroke-linecap': 'round',
+    }));
+    g.appendChild(svgText(label, {
+      x: LEGEND_LINE_W + LEGEND_GAP, y: midY(i),
+      'dominant-baseline': 'middle',
+      fill: config.nodeNameColor,
+      'font-size': String(config.fontSize),
+      'font-family': config.fontFamily,
+    }));
+  }
+  return g;
+}
+
 // ── Draw ──────────────────────────────────────────────────────────────────────
 
 export const draw = async (
@@ -682,6 +738,19 @@ export const draw = async (
       }));
     });
     svgElement.appendChild(panelG);
+  }
+
+  // 5. Legend overlay (topmost)
+  if (config.legend) {
+    const rowH = config.fontSize * 1.6;
+    const legendH = rowH * LEGEND_ENTRIES.length;
+    const longestLabel = Math.max(...LEGEND_ENTRIES.map((e) => e.label.length));
+    const legendW = LEGEND_LINE_W + LEGEND_GAP + longestLabel * (7 * config.fontSize / 18);
+    const { x: lx, y: ly } = computeLegendXY(
+      config.legendPosition, viewMinX, viewMinY, viewMaxX, svgHeight, legendW, legendH, SVG_PAD
+    );
+
+    svgElement.appendChild(renderLegend(lx, ly, config));
   }
 };
 

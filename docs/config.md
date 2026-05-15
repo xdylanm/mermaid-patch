@@ -73,3 +73,32 @@ These are advanced options; the defaults work well in most cases.
 |--------|---------|--------|-------------|
 | `portPlacement` | `elk-optimized` | `elk-optimized` \| `declaration` | How port sides are assigned. `elk-optimized` runs a geometry pass after the first layout to distribute ports across all four sides (left, right, top, bottom) based on the Y-positions of connected nodes. `declaration` assigns output ports to the right side and input ports to the left side in module-declaration order, with no geometry adjustment. |
 | `nodePlacementStrategy` | `brandes-koepf` | `brandes-koepf` \| `network-simplex` \| `simple` | ELK node placement algorithm. `brandes-koepf` produces the most compact layouts. |
+
+## Legend
+
+When enabled, a signal-type colour legend is overlaid on the rendered SVG. The legend shows the four concrete signal types (Audio, CV, V/oct, Gate) as horizontal coloured lines — 2× the connector stroke width — with the signal type name to the right. The legend has no border or title.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `patch.legend` | `boolean` | `false` | Enable the signal-type legend overlay. |
+| `patch.legendPosition` | `'top-left'` \| `'top-right'` \| `'bottom-left'` \| `'bottom-right'` | `'top-right'` | Corner of the SVG in which the legend is placed. |
+
+```js
+mermaid.initialize({
+  patch: {
+    legend: true,
+    legendPosition: 'top-right', // default — omit to use the default
+  },
+});
+```
+
+To place the legend in a different corner:
+
+```js
+mermaid.initialize({
+  patch: {
+    legend: true,
+    legendPosition: 'bottom-left',
+  },
+});
+```

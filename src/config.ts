@@ -4,7 +4,8 @@
  * Users configure this diagram via `mermaid.initialize()` with a `patch` key and/or
  * standard Mermaid `themeVariables`.  Only the following keys are accepted from the user:
  *
- *   background, fontFamily, fontSize, portPlacement, nodePlacementStrategy
+ *   background, fontFamily, fontSize, portPlacement, nodePlacementStrategy,
+ *   legend, legendPosition
  *
  * Signal colours and node chrome colours are derived from the built-in theme palette
  * (DEFAULT_CONFIG / DARK_CONFIG / NEUTRAL_CONFIG) and can be further adjusted via standard
@@ -40,6 +41,10 @@ export interface PatchConfig {
   // ── User-settable: layout options ─────────────────────────────────────────────────────────
   portPlacement: 'elk-optimized' | 'declaration';
   nodePlacementStrategy: 'brandes-koepf' | 'network-simplex' | 'simple';
+
+  // ── User-settable: legend ──────────────────────────────────────────────────────────────────
+  legend: boolean;          // when true, renders a signal-type colour legend overlay
+  legendPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 }
 
 export const DEFAULT_CONFIG: PatchConfig = {
@@ -66,6 +71,9 @@ export const DEFAULT_CONFIG: PatchConfig = {
 
   portPlacement: 'elk-optimized',
   nodePlacementStrategy: 'brandes-koepf',
+
+  legend: false,
+  legendPosition: 'top-right',
 };
 
 /** Built-in dark palette. Signal colours are identical to DEFAULT_CONFIG. */
