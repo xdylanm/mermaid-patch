@@ -1,26 +1,42 @@
 # Patch Diagrams for Mermaid
 
-A [Mermaid](https://mermaid.js.org) plugin that adds a **patch diagram** type for drawing modular synthesizer patch diagrams.
+A [Mermaid](https://mermaid.js.org) plugin that adds a **patch diagram** type for drawing modular synthesizer patch diagrams. Define module interfaces, create instances of modules, and connect ports using a Mermaid-like syntax: 
 
 ```
 patch
+module Sequencer {
+    +voct Pitch
+    +gate Gate
+}
 module Oscillator {
     +voct V/oct
-    +audio out
+    +audio Tri
+}
+module Envelope {
+    +gate Trig
+    +cv Out
 }
 module Filter {
     +audio In
-    +cv freq
+    +cv Freq
     +audio LP
 }
 
-Oscillator osc1["VCO"]
-Filter lpf1["Filter"]
+Sequencer sq1["Melody"]
+Oscillator osc1
+Filter lpf1["12dB/dec"]
+Envelope env1["ADSR"]
 
+sq1:Pitch --> osc1:V/oct
+sq1:Gate --> env1:Trig
 osc1:out --> lpf1:In
+env1:Out --> lpf1:Freq
+lpf1:LP -->|Out|
 ```
 
 Modules are rendered as blocks with typed ports (audio, CV, V/oct, gate). Connections are routed automatically using [ELK](https://eclipse.dev/elk/).
+
+![Patch diagram](./docs/example_diagram.png)
 
 ## Install
 
