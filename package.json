@@ -1,6 +1,6 @@
 {
   "name": "@idyllm/mermaid-patch",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Mermaid plugin for synthesizer patch diagrams",
   "module": "dist/mermaid-patch.core.mjs",
   "types": "dist/detector.d.ts",
