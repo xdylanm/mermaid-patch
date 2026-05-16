@@ -125,19 +125,27 @@ extra_javascript:
 import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 import { patch } from 'https://cdn.jsdelivr.net/npm/@idyllm/mermaid-patch/dist/mermaid-patch.core.mjs';
 
-mermaid.initialize({
-  startOnLoad: false,  // Material for MkDocs controls when rendering runs
-  securityLevel: 'loose',
-  theme: document.documentElement.getAttribute('data-md-color-scheme') === 'slate'
-    ? 'dark'
-    : 'default',
-});
+const patchConfig = {
+  // put any patch diagram config here, e.g.:
+  // legend: true,
+  // legendPosition: 'top-right',
+};
 
-// Must be awaited — Material triggers mermaid.run() as soon as window.mermaid is set
+// Material calls mermaid.initialize() with its own stripped-down config
+// (no patch key), overwriting anything set earlier. Wrap it so our
+// settings always win regardless of what Material passes.
+const _initialize = mermaid.initialize.bind(mermaid);
+mermaid.initialize = (config) => {
+  _initialize({ securityLevel: 'loose', ...config, patch: patchConfig });
+};
+
+// Must be awaited — Material triggers rendering as soon as window.mermaid is set.
 await mermaid.registerExternalDiagrams([patch]);
 
 window.mermaid = mermaid;
 ```
+
+> **Dark mode:** Material handles dark mode for its built-in diagram types via CSS custom properties that update automatically on palette change. Patch diagrams render SVG with explicit colours and are not re-rendered on toggle — the diagram stays in whichever theme was active when the page loaded.
 
 > The `data-md-color-scheme` check automatically switches to the dark colour palette when the reader selects the dark theme in mkdocs-material.
 
