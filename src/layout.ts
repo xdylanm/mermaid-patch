@@ -33,9 +33,9 @@ export const CORNER_R_OUTER = 12; // outermost band corner radius (px)
 export const CORNER_R_INNER = 4;  // background layer corner radius (px)
 export const TAB_D = 24; // depth of port tab (perpendicular to node edge), px
 export const TAB_L = BOX_H - 2 * CORNER_R_OUTER; // length of port tab along node edge = 57 px
-export const LAYER_GAP = 25;
+export const LAYER_GAP = 17;
 export const NODE_GAP = 16;
-export const SVG_PAD = 80;
+export const SVG_PAD = 40;
 export const STUB = 36;
 export const DANGLING_LEN = 60;
 
