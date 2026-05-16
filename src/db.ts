@@ -1,7 +1,11 @@
 import type { MermaidConfig } from 'mermaid';
-import mermaid from 'mermaid';
 import type { PatchAST } from './types.js';
 import { DEFAULT_CONFIG, DARK_CONFIG, NEUTRAL_CONFIG, type PatchConfig } from './config.js';
+
+/** Access the mermaid global lazily — it's always present by the time rendering runs. */
+function getMermaid(): { mermaidAPI: { getConfig(): MermaidConfig } } {
+  return (globalThis as Record<string, unknown>)['mermaid'] as ReturnType<typeof getMermaid>;
+}
 
 let _ast: PatchAST | null = null;
 
@@ -23,7 +27,7 @@ function parseThemeColor(raw: unknown): string | undefined {
 function resolvedConfig(): PatchConfig {
   let mermaidConf: MermaidConfig;
   try {
-    mermaidConf = mermaid.mermaidAPI.getConfig();
+    mermaidConf = getMermaid().mermaidAPI.getConfig();
   } catch {
     mermaidConf = {};
   }

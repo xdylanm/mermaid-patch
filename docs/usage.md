@@ -32,7 +32,7 @@ osc1:out --> lpf1:In
 
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-    import patch from 'https://cdn.jsdelivr.net/npm/mermaid-patch/dist/mermaid-patch.core.mjs';
+    import patch from 'https://cdn.jsdelivr.net/npm/@idyllm/mermaid-patch/dist/mermaid-patch.core.mjs';
 
     await mermaid.registerExternalDiagrams([patch]);
     mermaid.initialize({
@@ -58,14 +58,14 @@ python -m http.server 8080
 Install the package:
 
 ```bash
-npm install mermaid mermaid-patch
+npm install mermaid @idyllm/mermaid-patch
 ```
 
 Register before calling `initialize`:
 
 ```js
 import mermaid from 'mermaid';
-import patch from 'mermaid-patch';
+import patch from '@idyllm/mermaid-patch';
 
 await mermaid.registerExternalDiagrams([patch]);
 mermaid.initialize({ startOnLoad: true });
@@ -91,7 +91,7 @@ document.getElementById('output').innerHTML = svg;
 
 ```bash
 pip install mkdocs-material
-npm install mermaid mermaid-patch
+npm install mermaid @idyllm/mermaid-patch
 ```
 
 Or if you prefer a CDN build, skip the npm step and adjust the script below.
@@ -115,22 +115,28 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
 
 extra_javascript:
-  - javascripts/mermaid-init.js
+  - path: javascripts/mermaid-init.js
+    type: module
 ```
 
 ### 3. Create `docs/javascripts/mermaid-init.js`
 
 ```js
 import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-import patch from 'https://cdn.jsdelivr.net/npm/mermaid-patch/dist/mermaid-patch.core.mjs';
+import { patch } from 'https://cdn.jsdelivr.net/npm/@idyllm/mermaid-patch/dist/mermaid-patch.core.mjs';
 
-await mermaid.registerExternalDiagrams([patch]);
 mermaid.initialize({
-  startOnLoad: true,
+  startOnLoad: false,  // Material for MkDocs controls when rendering runs
+  securityLevel: 'loose',
   theme: document.documentElement.getAttribute('data-md-color-scheme') === 'slate'
     ? 'dark'
     : 'default',
 });
+
+// Must be awaited — Material triggers mermaid.run() as soon as window.mermaid is set
+await mermaid.registerExternalDiagrams([patch]);
+
+window.mermaid = mermaid;
 ```
 
 > The `data-md-color-scheme` check automatically switches to the dark colour palette when the reader selects the dark theme in mkdocs-material.
@@ -161,4 +167,4 @@ lpf1:LP --> |output|
 
 ### Note on self-hosted plugin builds
 
-If you want to bundle the plugin instead of loading it from a CDN (e.g. for offline docs or version pinning), copy `node_modules/mermaid-patch/dist/mermaid-patch.core.mjs` into `docs/javascripts/` and update the import path accordingly.
+If you want to bundle the plugin instead of loading it from a CDN (e.g. for offline docs or version pinning), copy `node_modules/@idyllm/mermaid-patch/dist/mermaid-patch.core.mjs` into `docs/javascripts/` and update the import path accordingly.

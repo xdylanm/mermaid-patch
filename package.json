@@ -1,5 +1,5 @@
 {
-  "name": "mermaid-patch",
+  "name": "@idyllm/mermaid-patch",
   "version": "0.1.0",
   "description": "Mermaid plugin for synthesizer patch diagrams",
   "module": "dist/mermaid-patch.core.mjs",
@@ -16,9 +16,15 @@
     "diagram",
     "mermaid",
     "patch",
-    "modular-synth"
+    "modular-synth",
+    "synthesizer",
+    "mkdocs"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/idyllm/mermaid-patch.git"
+  },
   "scripts": {
     "compile-grammar": "node scripts/compileGrammar.cjs",
     "prebuild": "node scripts/compileGrammar.cjs",
@@ -27,7 +33,8 @@
     "pretest": "node scripts/compileGrammar.cjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run test && npm run build"
   },
   "dependencies": {
     "elkjs": "^0.9.3",
@@ -47,6 +54,7 @@
     "mermaid": "^11"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ]
 }
