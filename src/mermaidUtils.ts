@@ -16,12 +16,12 @@ export const LEVELS: Record<LogLevel, number> = {
 };
 
 export const log: Record<keyof typeof LEVELS, typeof console.log> = {
-  trace: warning,
-  debug: warning,
-  info: warning,
-  warn: warning,
-  error: warning,
-  fatal: warning,
+  trace: console.debug.bind(console),
+  debug: console.debug.bind(console),
+  info: console.info.bind(console),
+  warn: console.warn.bind(console),
+  error: console.error.bind(console),
+  fatal: console.error.bind(console),
 };
 
 export let setLogLevel: (level: keyof typeof LEVELS | number) => void;
