@@ -440,12 +440,23 @@ function renderElkEdge(
 
   const bends = section.bendPoints || [];
   const raw = [srcTip, sp, ...bends, ep, destTip];
-  const pts = raw.filter(
+  const deduped = raw.filter(
     (p, i) =>
       i === 0 ||
       Math.abs(p.x - raw[i - 1].x) > 0.5 ||
       Math.abs(p.y - raw[i - 1].y) > 0.5
   );
+  // Remove collinear intermediate points so corners adjacent to port stubs get full corner radius
+  const pts: typeof deduped = [deduped[0]];
+  for (let i = 1; i < deduped.length - 1; i++) {
+    const prev = pts[pts.length - 1];
+    const curr = deduped[i];
+    const next = deduped[i + 1];
+    const abx = curr.x - prev.x, aby = curr.y - prev.y;
+    const bcx = next.x - curr.x, bcy = next.y - curr.y;
+    if (Math.abs(abx * bcy - aby * bcx) > 0.5) pts.push(curr);
+  }
+  if (deduped.length > 0) pts.push(deduped[deduped.length - 1]);
 
   const d = buildRoundedPath(pts);
   const markerId = 'arr-' + color.replace(/[^a-zA-Z0-9]/g, '_');

@@ -332,3 +332,46 @@ mix1:Out -->|signal|`;
     expect(inspection.nodes.mix1.ports).toHaveProperty('In1');
   });
 });
+
+// ── bass.pad diagram ──────────────────────────────────────────────────────────
+
+describe('bass.pad diagram', () => {
+  let inspection: LayoutInspection;
+  beforeAll(async () => {
+    inspection = await inspectLayout(loadDiagram('bass.pad.txt'));
+  });
+
+  test('has 11 nodes', () => {
+    expect(Object.keys(inspection.nodes)).toHaveLength(11);
+  });
+
+  test('mix1 inputs are distributed across N, W, and S faces', () => {
+    const { mix1 } = inspection.nodes;
+    const sides = [mix1.ports.inA.side, mix1.ports.inB.side, mix1.ports.inC.side];
+    expect(sides).toContain('N');
+    expect(sides).toContain('W');
+    expect(sides).toContain('S');
+  });
+
+  test('sq1:pitch is on E face', () => {
+    expect(inspection.nodes.sq1.ports.pitch.side).toBe('E');
+  });
+
+  test('sq1:gate is on S face (capacity enforcement: W/E face holds at most 1 port)', () => {
+    expect(inspection.nodes.sq1.ports.gate.side).toBe('S');
+  });
+
+  test('sq1:pitch connections do not cross each other', () => {
+    const selfCross = inspection.crossings.filter((c) => {
+      const ea = inspection.edges[c.edge_a];
+      const eb = inspection.edges[c.edge_b];
+      const fromPitch = (e: LayoutInspection['edges'][number]) => e.from === 'sq1:pitch';
+      return fromPitch(ea) && fromPitch(eb);
+    });
+    if (selfCross.length > 0) {
+      const desc = selfCross.map((c) => describeEdge(inspection.edges, c)).join('\n  ');
+      throw new Error(`sq1:pitch connections cross each other:\n  ${desc}`);
+    }
+    expect(selfCross).toHaveLength(0);
+  });
+});

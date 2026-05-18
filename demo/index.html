@@ -160,37 +160,88 @@
     <div class="editor-pane">
       <label>Diagram Source</label>
       <textarea id="input" spellcheck="false">patch
+module Sequencer {
+    +voct pitch
+    +gate gate
+}
 module Oscillator {
-    +voct V/oct
+    +voct CV
     +audio tri
-    +audio saw
+    +audio pulse
+    +cv PW
+}
+module Noise {
+    +any white
+    +any pink
 }
 module Filter {
-    +audio In
+    +audio in
     +cv freq
     +audio LP
 }
-module VCA {
-    +audio In
+module LFO {
     +cv CV
-    +audio Out
+    +cv sync
+    +any tri
+}
+module VCA {
+    +audio in
+    +cv CV
+    +audio out
+}
+module SNH {
+    +any in
+    +any out
+    +any LP
 }
 module Envelope {
-    +gate trig
-    +cv out
+    +gate gate
+    +cv env
+}
+module Mixer {
+    +any inA
+    +any inB
+    +any inC
+    +any out
+}
+module Delay {
+    +audio in
+    +audio out
 }
 
+Sequencer sq1["Arturia"]
 Oscillator osc1
-Filter lpf1
+Oscillator osc2["sub"]
+Noise n1
+Envelope env1["ADSR"]
 VCA vca1
-Envelope env1
+LFO lfo1
+Filter lpf1["12dB/dec"]
+SNH snh1
+Delay delay1
+Mixer mix1
 
--->|MIDI gate| env1:trig
-osc1:tri --> lpf1:In
-env1:out --> lpf1:freq
-lpf1:LP --> vca1:In
-env1:out --> vca1:CV
-vca1:Out -->|Out|</textarea>
+sq1:pitch --> osc1:CV
+sq1:pitch --> osc2:CV
+sq1:pitch --> lfo1:CV
+sq1:gate --> env1:gate
+sq1:gate --> lfo1:sync
+
+lfo1:tri --> osc1:PW
+
+n1:white --> snh1:in
+n1:pink --> mix1:inC
+
+osc1:pulse --> mix1:inA
+osc2:tri --> mix1:inB
+
+mix1:out --> lpf1:in
+snh1:LP --> lpf1:freq
+
+env1:env --> vca1:CV
+lpf1:LP --> vca1:in
+vca1:out --> delay1:in
+delay1:out -->|out|</textarea>
       <div class="editor-actions">
         <label class="theme-toggle">
           Theme
@@ -225,6 +276,11 @@ vca1:Out -->|Out|</textarea>
     // instance, ensuring mermaid.mermaidAPI.getConfig() in the plugin
     // reflects the config set by mermaid.initialize() here.
     import mermaid from 'mermaid';
+
+    // db.ts reads config via globalThis['mermaid'].mermaidAPI.getConfig().
+    // The ESM CDN bundle does not set window.mermaid automatically, so we do it
+    // here to ensure theme switching and patch config (legend, etc.) are picked up.
+    globalThis.mermaid = mermaid;
 
     // Load the locally built patch diagram plugin.
     // Path is relative to THIS file (demo/index.html), so go up one level to

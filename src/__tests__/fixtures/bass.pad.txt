@@ -1,0 +1,83 @@
+patch
+module Sequencer {
+    +voct pitch
+    +gate gate
+}
+module Oscillator {
+    +voct CV
+    +audio tri
+    +audio pulse
+    +cv PW
+}
+module Noise {
+    +any white
+    +any pink
+}
+module Filter {
+    +audio in
+    +cv freq
+    +audio LP
+}
+module LFO {
+    +cv CV
+    +cv sync
+    +any tri
+}
+module VCA {
+    +audio in
+    +cv CV
+    +audio out
+}
+module SNH {
+    +any in
+    +any out
+    +any LP 
+}
+module Envelope {
+    +gate gate
+    +cv env
+}
+module Mixer {
+    +any inA
+    +any inB
+    +any inC
+    +any out
+}
+module Delay {
+    +audio in
+    +audio out
+}
+
+Sequencer sq1["Arturia"]
+Oscillator osc1
+Oscillator osc2["sub"]
+Noise n1
+Envelope env1["ADSR"]
+VCA vca1
+LFO lfo1
+Filter lpf1["12dB/dec"]
+SNH snh1
+Delay delay1
+Mixer mix1
+
+sq1:pitch --> osc1:CV
+sq1:pitch --> osc2:CV
+sq1:pitch --> lfo1:CV
+sq1:gate --> env1:gate
+sq1:gate --> lfo1:sync
+
+lfo1:tri --> osc1:PW
+
+n1:white --> snh1:in
+n1:pink --> mix1:inC
+
+osc1:pulse --> mix1:inA
+osc2:tri --> mix1:inB
+
+mix1:out --> lpf1:in
+snh1:LP --> lpf1:freq
+
+env1:env --> vca1:CV
+lpf1:LP --> vca1:in
+vca1:out --> delay1:in
+delay1:out -->|out|

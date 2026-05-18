@@ -38,6 +38,8 @@ export const NODE_GAP = 16;
 export const SVG_PAD = 40;
 export const STUB = 36;
 export const DANGLING_LEN = 60;
+// Spacing between port centers when multiple ports share a top/bottom face (≈ TAB_L + 4 gap)
+export const FACE_PORT_SPREAD = TAB_L + 4;
 
 // Direction vectors for each side
 export const SIDE_DIR: Record<Side, [number, number]> = {
@@ -444,7 +446,12 @@ export async function buildLayout(
   });
 
   // ── Build ELK graph ───────────────────────────────────────────────────────
-  function buildGraph({ interactive = false, xOverrides = {} as Record<string, number> } = {}) {
+  // portFaceRank[nodeName][label] = rank index among left/right ports on the same
+  // face, sorted by avg neighbour Y. Used in pass 2 to spread port y-positions
+  // on left/right faces so ELK can route without inter-port crossings.
+  const portFaceRank: Record<string, Record<string, { rank: number; total: number }>> = {};
+
+  function buildGraph({ interactive = false, xOverrides = {} as Record<string, number>, applyPortFaceRank = false } = {}) {
     const BS = TAB_D + STUB;
     const elkW = BOX_W + 2 * BS;
     const elkH = BOX_H + 2 * BS;
@@ -481,6 +488,14 @@ export async function buildLayout(
       const nodeInSet = inPorts[node.name] || new Set<string>();
       const elkPorts: unknown[] = [];
 
+      const topFaceLabels = allPortLabels.filter((l) => portMeta[node.name][l].side === 'top');
+      const bottomFaceLabels = allPortLabels.filter((l) => portMeta[node.name][l].side === 'bottom');
+      function portFaceOff(label: string, faceList: string[]): number {
+        if (faceList.length <= 1) return 0;
+        const i = faceList.indexOf(label);
+        return (i - (faceList.length - 1) / 2) * FACE_PORT_SPREAD;
+      }
+
       for (const label of allPortLabels) {
         const meta = portMeta[node.name][label];
         const side = meta.side;
@@ -491,9 +506,29 @@ export async function buildLayout(
           ? (srcSlots[node.name] || {})[label] || []
           : (dstSlots[node.name] || {})[label] || [];
         const n = Math.max(slotList.length, 1);
+        const fo = side === 'top'    ? portFaceOff(label, topFaceLabels)
+                 : side === 'bottom' ? portFaceOff(label, bottomFaceLabels)
+                 : (applyPortFaceRank && portFaceRank[node.name]?.[label] != null)
+                   ? (() => {
+                       const { rank, total } = portFaceRank[node.name][label];
+                       // Use a spacing that accounts for the slot spread of each port so that
+                       // adjacent-rank ports don't overlap. n slots span (n-1)*PORT_SPLIT px.
+                       // Use the maximum slot count on this face as the spacing multiplier.
+                       const faceLabels2 = (side === 'left' || side === 'right')
+                         ? (nodePortLabels[node.name] || []).filter((l2) => portMeta[node.name][l2].side === side)
+                         : [];
+                       const maxSlots = faceLabels2.reduce((mx, l2) => {
+                         const isOut = (outPorts[node.name] || new Set<string>()).has(l2) || !(inPorts[node.name] || new Set<string>()).has(l2);
+                         const slots = isOut ? (srcSlots[node.name] || {})[l2]?.length ?? 1 : (dstSlots[node.name] || {})[l2]?.length ?? 1;
+                         return Math.max(mx, slots);
+                       }, 1);
+                       const spacing = Math.max(PORT_SPLIT, maxSlots * PORT_SPLIT);
+                       return (rank - (total - 1) / 2) * spacing;
+                     })()
+                 : 0;
 
         for (let s = 0; s < n; s++) {
-          const offset = (s - (n - 1) / 2) * PORT_SPLIT;
+          const offset = fo + (s - (n - 1) / 2) * PORT_SPLIT;
           const vid = n === 1 ? `${node.name}__${label}` : `${node.name}__${label}__s${s}`;
           elkPorts.push({
             id: vid,
@@ -627,14 +662,25 @@ export async function buildLayout(
     }
 
     for (const node of ast.nodes) {
-      const cy = nodeY[node.name];
-      if (cy === undefined) continue;
+      if (nodeY[node.name] === undefined) continue;
 
       const labels = nodePortLabels[node.name] || [];
       const nodeOutSet = outPorts[node.name] || new Set<string>();
       const nodeInSet = inPorts[node.name] || new Set<string>();
       const inputLabels = labels.filter((l) => nodeInSet.has(l) && !nodeOutSet.has(l));
       const outputLabels = labels.filter((l) => nodeOutSet.has(l) || !nodeInSet.has(l));
+
+      // Use average Y of all connected neighbour nodes as the centre reference.
+      // This is unbiased by the pass-1 port-face assignment (unlike nodeY[node.name]).
+      const neighbourYs: number[] = [];
+      for (const conn of ast.connections) {
+        if (brokenConns.has(conn) || conn.type === 'dangling') continue;
+        if (conn.from === node.name && conn.to && nodeY[conn.to] !== undefined) neighbourYs.push(nodeY[conn.to]!);
+        if (conn.to === node.name && conn.from && nodeY[conn.from] !== undefined) neighbourYs.push(nodeY[conn.from]!);
+      }
+      const cy = neighbourYs.length > 0
+        ? neighbourYs.reduce((a, b) => a + b, 0) / neighbourYs.length
+        : nodeY[node.name]!;
 
       for (const label of inputLabels)  setFace(node.name, label, 'left');
       for (const label of outputLabels) setFace(node.name, label, 'right');
@@ -649,8 +695,10 @@ export async function buildLayout(
         let nMoved = 0, sMoved = 0;
         for (let i = 0; i < withY.length; i++) {
           const { label } = withY[i];
-          if (i < ci && nMoved < 2)       { setFace(node.name, label, 'top');    nMoved++; nUsed = true; }
-          else if (i > ci && sMoved < 2)  { setFace(node.name, label, 'bottom'); sMoved++; sUsed = true; }
+          const slotCount = dstSlots[node.name]?.[label]?.length ?? 0;
+          const sameY = Math.abs(withY[i].avgY - withY[ci].avgY) < 1; // same source/neighbour as center
+          if (i < ci && nMoved < 2 && slotCount < 2 && !sameY)      { setFace(node.name, label, 'top');    nMoved++; nUsed = true; }
+          else if (i > ci && sMoved < 2 && slotCount < 2 && !sameY) { setFace(node.name, label, 'bottom'); sMoved++; sUsed = true; }
         }
       }
 
@@ -662,8 +710,31 @@ export async function buildLayout(
         let nMoved = 0, sMoved = 0;
         for (let i = 0; i < withY.length; i++) {
           const { label } = withY[i];
-          if (i < ci && !nUsed && nMoved < 2)       { setFace(node.name, label, 'top');    nMoved++; nUsed = true; }
-          else if (i > ci && !sUsed && sMoved < 2)  { setFace(node.name, label, 'bottom'); sMoved++; sUsed = true; }
+          const slotCount = srcSlots[node.name]?.[label]?.length ?? 0;
+          const sameY = Math.abs(withY[i].avgY - withY[ci].avgY) < 1;
+          if (i < ci && !nUsed && nMoved < 2 && slotCount < 2 && !sameY)      { setFace(node.name, label, 'top');    nMoved++; nUsed = true; }
+          else if (i > ci && !sUsed && sMoved < 2 && slotCount < 2 && !sameY) { setFace(node.name, label, 'bottom'); sMoved++; sUsed = true; }
+        }
+      }
+
+      // Capacity enforcement: at most 1 port per left/right face.
+      // The slotCount guard above can leave multiple ports on the same W/E face
+      // (there is only room for one tab). Keep the port whose avgY is closest to
+      // cy on the face; move the extremes to N/S.
+      for (const face of ['left', 'right'] as Side[]) {
+        const facePorts = labels.filter((l) => portMeta[node.name]?.[l]?.side === face);
+        if (facePorts.length <= 1) continue;
+        const isOut = face === 'right';
+        const sorted = facePorts
+          .map((l) => ({ label: l, avgY: connAvgY(node.name, l, isOut) }))
+          .sort((a, b) => a.avgY - b.avgY);
+        const ci = findCenter(sorted, cy);
+        for (let i = 0; i < sorted.length; i++) {
+          if (i === ci) continue;
+          if (i < ci && !nUsed)      { setFace(node.name, sorted[i].label, 'top');    nUsed = true; }
+          else if (i > ci && !sUsed) { setFace(node.name, sorted[i].label, 'bottom'); sUsed = true; }
+          else if (!nUsed)           { setFace(node.name, sorted[i].label, 'top');    nUsed = true; }
+          else if (!sUsed)           { setFace(node.name, sorted[i].label, 'bottom'); sUsed = true; }
         }
       }
     }
@@ -751,15 +822,110 @@ export async function buildLayout(
   }
 
   // ── Pass 2 ────────────────────────────────────────────────────────────────
+  // Simplified slot reordering for face-reset ports: those that moved from
+  // top/bottom → left/right have invalid pass-1 start-points for the standard
+  // crossing-detection loop (which skips them via changedFaceKeys). Sort their
+  // slots by destination/source Y so upper destinations get upper slot positions.
+  for (const [nodeName, ports] of Object.entries(srcSlots)) {
+    for (const [label, list] of Object.entries(ports)) {
+      if (list.length < 2) continue;
+      if (!changedFaceKeys.has(`${nodeName}|${label}`)) continue;
+      const side = portMeta[nodeName][label].side;
+      if (side !== 'right' && side !== 'left') continue;
+      const withY = list.map((ci) => ({ ci, y: secs1[ci]?.[0]?.endPoint?.y ?? 0 }));
+      withY.sort((a, b) => a.y - b.y);
+      list.splice(0, list.length, ...withY.map((w) => w.ci));
+      reordered = true;
+    }
+  }
+  for (const [nodeName, ports] of Object.entries(dstSlots)) {
+    for (const [label, list] of Object.entries(ports)) {
+      if (list.length < 2) continue;
+      if (!changedFaceKeys.has(`${nodeName}|${label}`)) continue;
+      const side = portMeta[nodeName][label].side;
+      if (side !== 'right' && side !== 'left') continue;
+      const withY = list.map((ci) => ({ ci, y: secs1[ci]?.[0]?.startPoint?.y ?? 0 }));
+      withY.sort((a, b) => a.y - b.y);
+      list.splice(0, list.length, ...withY.map((w) => w.ci));
+      reordered = true;
+    }
+  }
+
   const pass1Xs: Record<string, number> = {};
   if (facesChanged) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const elkNode of (result1.children || []) as any[]) pass1Xs[elkNode.id] = elkNode.x;
   }
-  const needPass2 = reordered || facesChanged;
+
+  // ── Port face rank (inter-port ordering on left/right faces) ─────────────
+  // For each node, sort all ports on the same left/right face by their average
+  // connected-neighbour Y so that ELK routes them with correct vertical ordering,
+  // eliminating inter-port crossings on the same face.
+  {
+    const BS2 = TAB_D + STUB;
+    const pass1NodeY: Record<string, number> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const elkNode of (result1.children || []) as any[]) {
+      pass1NodeY[elkNode.id] = elkNode.y + BS2 + BOX_H / 2;
+    }
+    for (const node of ast.nodes) {
+      const labels = nodePortLabels[node.name] || [];
+      for (const faceSide of ['left', 'right'] as Side[]) {
+        const faceLabels = labels.filter((l) => portMeta[node.name][l].side === faceSide);
+        if (faceLabels.length < 2) continue;
+        const withAvgY = faceLabels.map((label) => {
+          // Compute a score for this port based on where its connections go.
+          // Primary sort: average pass-1 endpoint Y (covers different-node targets).
+          // Secondary sort: average destination/source port definition index (tie-breaks
+          // within same target node, correlates with expected vertical ordering).
+          const ys: number[] = [];
+          const ranks: number[] = [];
+          ast.connections.forEach((conn, ci) => {
+            if (brokenConns.has(conn) || conn.type === 'dangling') return;
+            const sec = secs1[ci];
+            if (!sec || sec.length === 0) return;
+            if (conn.from === node.name && conn.fromPort === label) {
+              const ep = sec[sec.length - 1]?.endPoint;
+              if (ep) ys.push(ep.y);
+              if (conn.to && conn.toPort) {
+                const toNode = ast.nodes.find((n) => n.name === conn.to);
+                const toDef = toNode ? ast.modules.find((m) => m.name === toNode.function) : null;
+                const toIdx = toDef ? toDef.ports.findIndex((p) => p.label === conn.toPort) : -1;
+                if (toIdx >= 0) ranks.push(toIdx);
+              }
+            } else if (conn.to === node.name && conn.toPort === label) {
+              const sp = sec[0]?.startPoint;
+              if (sp) ys.push(sp.y);
+              if (conn.from && conn.fromPort) {
+                const fromNode = ast.nodes.find((n) => n.name === conn.from);
+                const fromDef = fromNode ? ast.modules.find((m) => m.name === fromNode.function) : null;
+                const fromIdx = fromDef ? fromDef.ports.findIndex((p) => p.label === conn.fromPort) : -1;
+                if (fromIdx >= 0) ranks.push(fromIdx);
+              }
+            }
+          });
+          const avgY = ys.length > 0 ? ys.reduce((a, b) => a + b, 0) / ys.length : pass1NodeY[node.name]!;
+          const avgRank = ranks.length > 0 ? ranks.reduce((a, b) => a + b, 0) / ranks.length : 0;
+          return { label, avgY, avgRank };
+        });
+        // Sort by avgY first; use avgRank as a tie-breaker for same-node connections.
+        withAvgY.sort((a, b) => {
+          const dy = a.avgY - b.avgY;
+          if (Math.abs(dy) > 1) return dy; // more than 1px apart: use Y
+          return a.avgRank - b.avgRank;    // same node: use definition order
+        });
+        if (!portFaceRank[node.name]) portFaceRank[node.name] = {};
+        withAvgY.forEach(({ label }, rank) => {
+          portFaceRank[node.name][label] = { rank, total: withAvgY.length };
+        });
+      }
+    }
+  }
+  const hasFaceRank = Object.keys(portFaceRank).length > 0;
+  const needPass2 = reordered || facesChanged || hasFaceRank;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const result: any = needPass2
-    ? await elk.layout(buildGraph({ interactive: facesChanged, xOverrides: facesChanged ? pass1Xs : {} }))
+    ? await elk.layout(buildGraph({ interactive: facesChanged, xOverrides: facesChanged ? pass1Xs : {}, applyPortFaceRank: hasFaceRank }))
     : result1;
 
   // ── Build layout map ──────────────────────────────────────────────────────
@@ -774,16 +940,28 @@ export async function buildLayout(
     const portAnchors: NodeLayout['portAnchors'] = {};
     const allPorts: NodeLayout['allPorts'] = [];
 
+    const allNodeLabels = nodePortLabels[name] || [];
+    const topFaceAnchors = allNodeLabels.filter((l) => (portMeta[name]?.[l]?.side) === 'top');
+    const bottomFaceAnchors = allNodeLabels.filter((l) => (portMeta[name]?.[l]?.side) === 'bottom');
+    function anchorFaceOff(label: string, faceList: string[]): number {
+      if (faceList.length <= 1) return 0;
+      const i = faceList.indexOf(label);
+      return (i - (faceList.length - 1) / 2) * FACE_PORT_SPREAD;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const elkPort of (elkNode.ports || []) as any[]) {
       const rawLabel = elkPort.id.slice(name.length + 2);
       const label = rawLabel.replace(/__s\d+$/, '');
       if (portAnchors[label]) continue;
       const meta = (portMeta[name] || {})[label] || { side: 'right' as Side, type: 'default' };
+      const fo = meta.side === 'top'    ? anchorFaceOff(label, topFaceAnchors)
+               : meta.side === 'bottom' ? anchorFaceOff(label, bottomFaceAnchors)
+               : 0;
       const sideBx =
         meta.side === 'right' ? x + BOX_W :
         meta.side === 'left'  ? x :
-        x + BOX_W / 2;
+        x + BOX_W / 2 + fo;
       const sideBy =
         meta.side === 'top'    ? y :
         meta.side === 'bottom' ? y + BOX_H :
